@@ -8,11 +8,37 @@ import { Button } from "../catalyst-ui/button";
 import { Divider } from "../catalyst-ui/divider";
 import { Heading } from "../catalyst-ui/heading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/catalyst-ui/table'
+import { handleKeyDown } from "../utils";
 
 type VocabTerm = {
     french: string,
     english: string,
     misc: string
+}
+
+async function reverso(text: string) {
+    return fetch("https://api.reverso.net/translate/v1/translation", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            format: 'text',
+            from: "fr",
+            input: text,
+            options: {
+                contextResults: true,
+                languageDetection: true,
+                origin: 'reversomobile',
+                sentenceSplitter: false,
+            },
+            to: "en"
+        })
+    })
+        .then(res => res.json())
+    // .then(res => )
+    // .then(res => console.log(res))
+
 }
 
 function HistoryTable() {
@@ -21,6 +47,23 @@ function HistoryTable() {
     const vocabTermFields: VocabTermFields[] = ["french", "english", "misc"];
     const [savedTerms, setSavedTerms] = useState<VocabTerm[]>([{ french: "poisson", english: "fish", misc: "TODO" }]);
     const [newTerm, setNewTerm] = useState<VocabTerm>(emptyTerm);
+
+    async function createTerm(event: React.KeyboardEvent<HTMLInputElement>) {
+        handleKeyDown(event, () => {
+            if (newTerm.english === '') {
+                const result = reverso(newTerm.french)
+                    .then(res => res['translation'])
+                    .then((translation: string[]) => {
+                        setSavedTerms((savedTerms) => [{ ...newTerm, english: translation[0], misc: newTerm.misc + "(From Reverso)" }, ...savedTerms]);
+                        setNewTerm(emptyTerm)
+                    })
+            } else {
+                setSavedTerms((savedTerms) => [newTerm, ...savedTerms]);
+                setNewTerm(emptyTerm)
+            }
+        })
+    }
+
     return (
         <Table striped className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
             <TableHead>
@@ -38,10 +81,7 @@ function HistoryTable() {
                                 <Input
                                     aria-label={`"${termKey} Term"`}
                                     value={newTerm[termKey]}
-                                    onKeyDown={(event) => handleKeyDown(event, () => {
-                                        setSavedTerms((savedTerms) => [newTerm, ...savedTerms]);
-                                        setNewTerm(emptyTerm)
-                                    })}
+                                    onKeyDown={(event) => createTerm(event)}
                                     onChange={(e) => setNewTerm({ ...newTerm, [termKey]: e.target.value })}
                                 />
                             </TableCell>)
@@ -73,9 +113,7 @@ function extractYoutubeId(url: string): string | undefined {
     }
 }
 
-const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, action: () => any) => {
-    if (event.key === 'Enter') action();
-}
+
 
 export default function YoutubeTool() {
     const [url, setUrl] = useState<string>();
