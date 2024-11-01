@@ -5,6 +5,7 @@ import { Heading } from "../catalyst-ui/heading";
 import FlashCardMaker from "./flash-maker";
 import Link from "next/link";
 import { Button } from "@/app/catalyst-ui/button";
+import { UrlObject } from "url";
 
 export enum Language {
     ENGLISH = "English",
@@ -13,6 +14,7 @@ export enum Language {
 
 export type Term = {
     word: string,
+    type?: WordType
     otherPossibilies?: string[]
     language: Language,
     examples?: string[]
@@ -21,6 +23,9 @@ export type Term = {
 export type TermTuple = {
     firstTerm: Term,
     secondTerm: Term,
+    assets?: {
+        imgUrl: UrlObject
+    }
 }
 
 export enum WordType {
@@ -41,11 +46,13 @@ export const advancedTermTuples: TermTuple[] = [
       firstTerm: {
         word: "Accroître",
         language: Language.FRENCH,
+        type: WordType.VERB,
         examples: ["Nous devons accroître nos efforts pour réussir.", "Ce médicament peut accroître les chances de guérison."]
       },
       secondTerm: {
         word: "Increase",
         language:Language.ENGLISH,
+        type: WordType.VERB,
         examples: ["We need to increase our efforts to succeed.", "This medication can increase the chances of recovery."]
       }
     },
@@ -160,6 +167,136 @@ export const advancedTermTuples: TermTuple[] = [
   ];
   
 
+  export const foodTermTuples = [
+    {
+      firstTerm: {
+        word: "Gourmandise",
+        language:Language.FRENCH,
+        examples: ["Sa gourmandise est évidente quand il voit des desserts.", "La gourmandise peut parfois être un défaut."]
+      },
+      secondTerm: {
+        word: "Indulgence",
+        language:Language.ENGLISH,
+        examples: ["His indulgence is evident when he sees desserts.", "Indulgence can sometimes be a flaw."]
+      }
+    },
+    {
+      firstTerm: {
+        word: "Épicer",
+        language:Language.FRENCH,
+        type: WordType.VERB,
+        examples: ["J'aime épicer mes plats avec du poivre noir.", "Elle sait comment bien épicer un plat."]
+      },
+      secondTerm: {
+        word: "Season",
+        language:Language.ENGLISH,
+        type: WordType.VERB,
+        examples: ["I like to season my dishes with black pepper.", "She knows how to season a dish well."]
+      }
+    },
+    {
+      firstTerm: {
+        word: "Savourer",
+        language:Language.FRENCH,
+        type: WordType.VERB,
+        examples: ["Il aime savourer chaque bouchée de son repas.", "Savourer un bon vin est un plaisir."]
+      },
+      secondTerm: {
+        word: "Savor",
+        language:Language.ENGLISH,
+        type: WordType.VERB,
+        examples: ["He likes to savor every bite of his meal.", "Savoring a good wine is a pleasure."]
+      }
+    },
+    {
+      firstTerm: {
+        word: "Délectable",
+        language:Language.FRENCH,
+        examples: ["Le dessert était absolument délectable.", "Ce restaurant est connu pour ses plats délectables."]
+      },
+      secondTerm: {
+        word: "Delectable",
+        language:Language.ENGLISH,
+        examples: ["The dessert was absolutely delectable.", "This restaurant is known for its delectable dishes."]
+      }
+    },
+    {
+      firstTerm: {
+        word: "Appétissant",
+        language:Language.FRENCH,
+        examples: ["L'odeur de la cuisine est appétissante.", "Les pâtisseries dans la vitrine sont appétissantes."]
+      },
+      secondTerm: {
+        word: "Appetizing",
+        language:Language.ENGLISH,
+        examples: ["The smell from the kitchen is appetizing.", "The pastries in the display are appetizing."]
+      }
+    },
+    {
+      firstTerm: {
+        word: "Dévorer",
+        language:Language.FRENCH,
+        type: WordType.VERB,
+        examples: ["Il a dévoré son repas en quelques minutes.", "Les enfants dévorent leurs sucreries."]
+      },
+      secondTerm: {
+        word: "Devour",
+        language:Language.ENGLISH,
+        type: WordType.VERB,
+        examples: ["He devoured his meal in minutes.", "The children devour their sweets."]
+      }
+    },
+    {
+      firstTerm: {
+        word: "Gastronomie",
+        language:Language.FRENCH,
+        examples: ["La gastronomie française est célèbre dans le monde entier.", "Ils étudient la gastronomie pour devenir chefs."]
+      },
+      secondTerm: {
+        word: "Gastronomy",
+        language:Language.ENGLISH,
+        examples: ["French gastronomy is famous worldwide.", "They study gastronomy to become chefs."]
+      }
+    },
+    {
+      firstTerm: {
+        word: "Fermentation",
+        language:Language.FRENCH,
+        examples: ["La fermentation est essentielle pour le vin.", "Le processus de fermentation est complexe."]
+      },
+      secondTerm: {
+        word: "Fermentation",
+        language:Language.ENGLISH,
+        examples: ["Fermentation is essential for wine.", "The fermentation process is complex."]
+      }
+    },
+    {
+      firstTerm: {
+        word: "Raffiné",
+        language:Language.FRENCH,
+        examples: ["Il aime les plats raffinés et sophistiqués.", "Le chocolat belge est souvent raffiné."]
+      },
+      secondTerm: {
+        word: "Refined",
+        language:Language.ENGLISH,
+        examples: ["He enjoys refined and sophisticated dishes.", "Belgian chocolate is often refined."]
+      }
+    },
+    {
+      firstTerm: {
+        word: "Assaisonnement",
+        language:Language.FRENCH,
+        examples: ["L'assaisonnement est crucial pour un bon plat.", "Elle utilise un assaisonnement maison."]
+      },
+      secondTerm: {
+        word: "Seasoning",
+        language:Language.ENGLISH,
+        examples: ["Seasoning is crucial for a good dish.", "She uses homemade seasoning."]
+      }
+    }
+  ];
+  
+
 
 export default function FlashCardHome() {
     return (
@@ -174,27 +311,28 @@ export default function FlashCardHome() {
             <Divider />
             <div className="flex w-full flex-wrap items-end justify-between gap-4 border-b border-zinc-950/10 pb-6 dark:border-white/10">
 
-                <CardGrid items={advancedTermTuples} />
+                <CardGrid>
+                    {advancedTermTuples.map((item, index) => <Card item={item} key={index}/>)}
+                </CardGrid>
             </div>
         </div>)
 }
 
-const CardGrid = ({ items }: { items: TermTuple[] }) => {
+export const CardGrid = ({ children }: { children: Readonly<React.ReactNode> }) => {
     return (
         <div className="container mx-auto p-4">
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {items.map((item, index) => <Card item={item} index={index}/>)}
+                {children}
             </div>
         </div>
     );
 };
 
-const Card = ({ item, index }: { item: TermTuple, index: number }) => {
+export const Card = ({ item}: { item: TermTuple }) => {
     const [isFlipped, flip] = useState(false);
     return (
         <div
         onClick={() => flip(!isFlipped)}
-        key={index}
         className="rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105"
     >
         <h2 className="text-xl font-semibold mb-2">{isFlipped ? item.secondTerm.word : item.firstTerm.word}</h2>

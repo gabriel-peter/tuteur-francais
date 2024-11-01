@@ -61,6 +61,7 @@ import {
   Square2StackIcon,
   TicketIcon,
 } from '@heroicons/react/20/solid'
+import { VideoCameraIcon } from "@heroicons/react/20/solid";
 
 function HomeLayout({children}) {
   return (
@@ -158,9 +159,9 @@ function HomeLayout({children}) {
                 <Square2StackIcon />
                 <SidebarLabel>Flash Cards</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/orders">
-                <TicketIcon />
-                <SidebarLabel>Orders</SidebarLabel>
+              <SidebarItem href="/youtube">
+                <VideoCameraIcon />
+                <SidebarLabel>Youtube</SidebarLabel>
               </SidebarItem>
               <SidebarItem href="/settings">
                 <Cog6ToothIcon />
