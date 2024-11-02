@@ -1,44 +1,106 @@
 "use client"
-import { Heading } from "@/app/catalyst-ui/heading";
+import { Heading } from "@/components/catalyst-ui/heading";
 import { useState } from "react";
-import { advancedTermTuples, CardGrid, foodTermTuples, TermTuple, WordType } from "../page";
-import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/app/catalyst-ui/dialog";
-import { Field, Label } from "@/app/catalyst-ui/fieldset";
-import { Button } from "@/app/catalyst-ui/button";
-import { Input } from "@/app/catalyst-ui/input";
-import { Text } from '@/app/catalyst-ui/text'
+import { CardGrid } from "../page";
+import { advancedTermTuples, foodTermTuples } from "../../../data/term-tuples";
+import { Quiz, TermTuple, WordType } from "@/data/types";
+import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/components/catalyst-ui/dialog";
+import { Field, Label } from "@/components/catalyst-ui/fieldset";
+import { Button } from "@/components/catalyst-ui/button";
+import { Input } from "@/components/catalyst-ui/input";
+import { Text } from '@/components/catalyst-ui/text'
 import { CheckIcon } from "@heroicons/react/24/solid";
 import { ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/20/solid";
-import { idiomTermTuples } from "../term-tuples";
-import { Switch, SwitchField } from "@/app/catalyst-ui/switch";
+import { idiomTermTuples } from "../../../data/term-tuples";
+import { Switch, SwitchField } from "@/components/catalyst-ui/switch";
+import { ChevronDownIcon, PlusIcon } from "@heroicons/react/16/solid";
+import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
+import { handleKeyDown } from "@/app/utils";
+import { callWithPrompt } from "@/clients/open-ai";
 
+type RequestState = "IDLE" | "LOADING" | "FAILED" | "SUCCESS"
 
-const sizes = {
-    xs: 'sm:max-w-xs',
-    sm: 'sm:max-w-sm',
-    md: 'sm:max-w-md',
-    lg: 'sm:max-w-lg',
-    xl: 'sm:max-w-xl',
-    '2xl': 'sm:max-w-2xl',
-    '3xl': 'sm:max-w-3xl',
-    '4xl': 'sm:max-w-4xl',
-    '5xl': 'sm:max-w-5xl',
+function AIDialogBody() {
+    const [requestState, setRequestState] = useState<RequestState>("IDLE")
+    const [termTuples, setTermTuples] = useState<string | null>();
+    function sendToOpenAI(prompt: string) {
+        console.log(prompt)
+        setRequestState("LOADING")
+        callWithPrompt(prompt).then(res => {
+            setRequestState("SUCCESS")
+            setTermTuples(res)
+        }).catch(err => {
+            console.error(err);
+            setRequestState("FAILED");
+        })
+    }
+    const textInput = <Field>
+    <Label>Prompt</Label>
+    <Input onKeyDown={event => handleKeyDown(event, () => sendToOpenAI(event.currentTarget.value))} name="prompt" placeholder="Make a quiz with ..." />
+  </Field>;
+    switch(requestState) {
+        case "IDLE": return textInput;
+        case "FAILED": return (<>{textInput}<Text>Operation Failed {":("}</Text></>)
+        case "LOADING": return "LOADING ..."
+        case "SUCCESS": return  QuizCreationPreview(termTuples)
+    }
+}
+
+function QuizCreationPreview(termTupleString: string | undefined) {
+    return <Text>{termTupleString}</Text>
 }
 
 
+function QuizGeneratorDialog({isOpen, setIsOpen}: {isOpen: boolean, setIsOpen: (x: boolean) => void}) {
+ const [generateOption, setGenerateOption] = useState<"AI"|"MANUAL">();
 
-type Quiz = {
-    title: string,
-    items: TermTuple[]
-    state?: "COMPLETED" | "FAILED"
+    function dialogBody() {
+        switch(generateOption) {
+            case undefined: return <div className="flex justify-evenly">
+            <Button onClick={() => setGenerateOption("AI")}>AI-generate</Button>
+            <Button onClick={() => setGenerateOption("MANUAL")}>Manual</Button>
+            </div>
+            case "AI": return <AIDialogBody/>
+        }
+    }
+  return (
+    <>
+      {/* <Dropdown>
+        <DropdownButton outline>
+        Add new quiz
+          <ChevronDownIcon />
+        </DropdownButton>
+        <DropdownMenu>
+          <DropdownItem onClick={() => setIsOpen(true)}></DropdownItem>
+          <DropdownItem href="#" disabled>
+            Download
+          </DropdownItem>
+        </DropdownMenu>
+      </Dropdown> */}
+
+      <Dialog open={isOpen} onClose={setIsOpen}>
+        <DialogTitle>Refund payment</DialogTitle>
+        <DialogDescription>
+          The refund will be reflected in the customer’s bank account 2 to 3 business days after processing.
+        </DialogDescription>
+        <DialogBody>
+            {dialogBody()}
+        </DialogBody>
+        {/* <DialogActions>
+          <Button plain onClick={() => setIsOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => setIsOpen(false)}>Refund</Button>
+        </DialogActions> */}
+      </Dialog>
+    </>
+  )
 }
-
 const quizzes = [
     { title: "Quiz 1", items: advancedTermTuples },
     { title: "Food 1", items: foodTermTuples },
     { title: "Idioms - Reverso Context", items: idiomTermTuples }
 ]
-
 
 export const QuizCard = ({ quiz, setQuiz }: { quiz: Quiz, setQuiz: (q: Quiz) => void }) => {
     return (
@@ -57,7 +119,7 @@ function shuffle(array: TermTuple[]) {
     for (let i = array.length - 1; i > 0; i--) {
         // Generate a random index from 0 to i
         const j = Math.floor(Math.random() * (i + 1));
-        
+
         // Swap elements at indices i and j
         [arrayCopy[i], arrayCopy[j]] = [arrayCopy[j], arrayCopy[i]];
     }
@@ -66,9 +128,11 @@ function shuffle(array: TermTuple[]) {
 
 export default function FlashCardQuiz() {
     const [quiz, setQuiz] = useState<Quiz>();
+    const [openQuizGenerator, setOpenQuizGenerator] = useState(false);
     const [shuffleEnabled, setShuffleEnabled] = useState(true)
     return (
         <div>
+            <QuizGeneratorDialog isOpen={openQuizGenerator} setIsOpen={setOpenQuizGenerator}/>
             {quiz && <QuizPanel quiz={quiz} setQuizShown={() => setQuiz(undefined)} />}
             <div className="flex w-full flex-wrap items-end justify-between gap-4 border-b border-zinc-950/10 pb-6 dark:border-white/10">
                 <Heading>Quiz</Heading>
@@ -89,7 +153,17 @@ export default function FlashCardQuiz() {
                         const possibleShuffledQuiz = quiz;
                         possibleShuffledQuiz.items = shuffle(possibleShuffledQuiz.items);
                         return (<QuizCard quiz={possibleShuffledQuiz} setQuiz={setQuiz} key={index} />)
-                        })}
+                    })}
+                    <div
+                        onClick={() => setOpenQuizGenerator(true)}
+                        className="flex justify-center align-center rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105"
+                    >
+                        <Button>
+                            <PlusIcon />
+                            Add new quiz
+                        </Button>
+                    </div>
+
                 </CardGrid>
             </div>
         </div>)

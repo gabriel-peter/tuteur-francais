@@ -1,6 +1,6 @@
-import { Button } from "../catalyst-ui/button";
-import { Divider } from "../catalyst-ui/divider";
-import { Heading } from "../catalyst-ui/heading";
+import { Button } from "./catalyst-ui/button";
+import { Divider } from "./catalyst-ui/divider";
+import { Heading } from "./catalyst-ui/heading";
 
 export default function PageHeader({title, buttonSuite, children}: {title: string, buttonSuite?: React.ReactElement[], children: React.ReactNode}) {
     return (

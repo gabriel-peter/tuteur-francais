@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Dropdown, DropdownButton, DropdownItem, DropdownMenu } from './catalyst-ui/dropdown'
+import { Dropdown, DropdownButton, DropdownItem, DropdownMenu } from '../components/catalyst-ui/dropdown'
 import { ChevronDownIcon } from '@heroicons/react/16/solid'
 
 function Example() {
