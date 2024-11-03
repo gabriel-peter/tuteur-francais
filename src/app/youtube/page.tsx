@@ -7,89 +7,42 @@ import { useEffect, useState } from "react";
 import { Button } from "../../components/catalyst-ui/button";
 import { Divider } from "../../components/catalyst-ui/divider";
 import { Heading } from "../../components/catalyst-ui/heading";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst-ui/table'
+import { Table, TableBody, TableCell, TableHead, TableRow } from '@/components/catalyst-ui/table'
 import { handleKeyDown } from "../utils";
-import { extractYoutubeId, getVideoTitle, Video } from "@/clients/youtube";
-import { reverso } from "@/clients/reverso";
+import { extractYoutubeId, getVideoTitle as getVideoMetadata, YoutubeVideoMetadata } from "@/clients/youtube";
 import Image from 'next/image';
-import { VideoVocabTerm } from "@/data/types";
+import { upsertAnnotatedVideoAction as createOrFindAnnotatedVideoAction, getAllAnnotatedVideoAction } from "@/db/actions";
+import { AnnotatedVideo } from "@/db/models/annotated-video";
+import { HistoryTable } from "./HistoryTable";
 
-
-function HistoryTable() {
-    const emptyTerm = { french: '', english: '', misc: '' };
-    type VocabTermFields = keyof VideoVocabTerm;
-    const vocabTermFields: VocabTermFields[] = ["french", "english", "misc"];
-    const [savedTerms, setSavedTerms] = useState<VideoVocabTerm[]>([{ french: "poisson", english: "fish", misc: "TODO" }]);
-    const [newTerm, setNewTerm] = useState<VideoVocabTerm>(emptyTerm);
-
-    async function createTerm(event: React.KeyboardEvent<HTMLInputElement>) {
-        handleKeyDown(event, () => {
-            if (newTerm.english === '') {
-                const result = reverso(newTerm.french)
-                    .then(res => res['translation'])
-                    .then((translation: string[]) => {
-                        setSavedTerms((savedTerms) => [{ ...newTerm, english: translation[0], misc: newTerm.misc + "(Translated via Reverso)" }, ...savedTerms]);
-                        setNewTerm(emptyTerm)
-                    })
-            } else {
-                setSavedTerms((savedTerms) => [newTerm, ...savedTerms]);
-                setNewTerm(emptyTerm)
-            }
-        })
-    }
-
-    return (
-        <Table striped className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
-            <TableHead>
-                <TableRow>
-                    <TableHeader>French</TableHeader>
-                    <TableHeader>English</TableHeader>
-                    <TableHeader>Misc</TableHeader>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                <TableRow>
-                    {vocabTermFields.map((termKey, index) => {
-                        return (
-                            <TableCell key={index}>
-                                <Input
-                                    aria-label={`"${termKey} Term"`}
-                                    value={newTerm[termKey]}
-                                    onKeyDown={(event) => createTerm(event)}
-                                    onChange={(e) => setNewTerm({ ...newTerm, [termKey]: e.target.value })}
-                                />
-                            </TableCell>)
-                    })
-                    }
-                </TableRow>
-                {savedTerms.map((term, index) => (
-                    <TableRow key={index}>
-                        <TableCell className="font-medium">{term.french}</TableCell>
-                        <TableCell>{term.english}</TableCell>
-                        <TableCell className="text-zinc-500">{term.misc}</TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    )
-}
 
 export default function YoutubeToolHome() {
     const [url, setUrl] = useState<string>();
-    const [video, setVideo] = useState<Video>();
-    const videoRecents: Video[] = [{
-        "videoId": "n5S2NuZm3_w",
-        "title": "Je vous prépare le poisson le plus sous côté",
-        "thumbnailUrl": "https://i.ytimg.com/vi/n5S2NuZm3_w/hqdefault.jpg"
-    }];
+    const [video, setVideo] = useState<AnnotatedVideo>();
+    const [videoRecents, setVideoRecents] = useState<AnnotatedVideo[]>([{
+        videoId: "n5S2NuZm3_w",
+        title: "Je vous prépare le poisson le plus sous côté",
+        thumbnailUrl: "https://i.ytimg.com/vi/n5S2NuZm3_w/hqdefault.jpg",
+        createdAt: new Date(),
+        terms: []
+    }])
     useEffect(() => {
         if (url === undefined) return;
-        getVideoTitle(url).then(res => {
+        getVideoMetadata(url).then(res => {
             console.log(res);
-            setVideo(res);
-        })
-
+            return res
+        }).then(metadata => createOrFindAnnotatedVideoAction(metadata))
+        .then(res => JSON.parse(res))
+        .then((newVideo: AnnotatedVideo) => setVideo(newVideo))
+        .then(r => console.log("Success new video save: " + r))
+        .catch(e => console.log(e))
     }, [url, setUrl])
+
+    useEffect(() => {
+        getAllAnnotatedVideoAction().then(res => JSON.parse(res))
+        .then((recents: AnnotatedVideo[]) => setVideoRecents(prev => [...prev, ...recents]))
+        .catch(e => console.error(e))
+    }, [])
     return (
         <>
             <Field>
@@ -109,12 +62,12 @@ export default function YoutubeToolHome() {
                 </InputGroup>
             </Field>
             <br />
-            {video ? VideoNoteTool(video) : <VideoRecents videoRecents={videoRecents} />}
+            {video ? <VideoNoteTool video={video}/> : <VideoRecents setUrl={setUrl} videoRecents={videoRecents} />}
         </>
     )
 }
 
-function VideoRecents({ videoRecents }: { videoRecents: Video[] }) {
+function VideoRecents({ videoRecents, setUrl }: { videoRecents: YoutubeVideoMetadata[], setUrl: (x: string) => void }) {
     return (
         <>
         <Heading>Recently viewed</Heading>
@@ -128,7 +81,7 @@ function VideoRecents({ videoRecents }: { videoRecents: Video[] }) {
             </TableHead>
             <TableBody>
                 {videoRecents.map((video, index) => (
-                    <TableRow key={index} href={`/youtube/${video.videoId}`}>
+                    <TableRow key={index} onClick={() => setUrl(`https://www.youtube.com/watch?v=${video.videoId}`)}>
                         <TableCell>
                             <div className="flex items-center gap-4">
                                 <Image
@@ -161,7 +114,7 @@ function VideoRecents({ videoRecents }: { videoRecents: Video[] }) {
     )
 }
 
-function VideoNoteTool(video: { videoId: string; title: string; }) {
+function VideoNoteTool({video}:{video: AnnotatedVideo}) {
     return <>
         <div className="relative w-full h-0"
             style={{ paddingBottom: '56.25%' }} // 16:9 Aspect ratio 
@@ -177,6 +130,6 @@ function VideoNoteTool(video: { videoId: string; title: string; }) {
         </div>
         <Divider />
         <Heading>Notes - «{video.title}»</Heading>
-        <HistoryTable />
+        <HistoryTable video={video}/>
     </>;
 }

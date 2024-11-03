@@ -27,4 +27,4 @@ const QuizSchema = new mongoose.Schema({
         default: "NEW"
     },
 });
-export default mongoose.models.QuizSchema || mongoose.model<MongoQuiz>("Quiz", QuizSchema)
+export default mongoose.models.Quiz || mongoose.model<MongoQuiz>("Quiz", QuizSchema)

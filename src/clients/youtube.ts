@@ -1,4 +1,4 @@
-import { VideoVocabTerm } from "@/data/types";
+import { VideoVocabTerm } from "@/db/models/vocab-term";
 
 export function extractYoutubeId(url: string): string {
     const regex = /[?&]v=([^&#]*)/;
@@ -13,7 +13,7 @@ export function extractYoutubeId(url: string): string {
     }
 }
 
-export async function getVideoTitle(url: string): Promise<Video> {
+export async function getVideoTitle(url: string): Promise<YoutubeVideoMetadata> {
     const apiKey =  process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
     console.log(apiKey);
     const videoId = extractYoutubeId(url); // Extract video ID from URL
@@ -30,16 +30,11 @@ export async function getVideoTitle(url: string): Promise<Video> {
     }
 }
 
-export type Video = {
+export type YoutubeVideoMetadata = {
     videoId: string;
     title: string;
     thumbnailUrl?: string;
 };
-
-export type VideoWithNotes = {
-    createdAt: string;
-    notes: VideoVocabTerm[];
-} & Video;
 
 function getThumbnailUrl(data: any): string | undefined {
     const thumbnails = data.items[0].snippet.thumbnails;

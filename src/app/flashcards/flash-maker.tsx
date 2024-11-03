@@ -4,7 +4,7 @@ import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } fro
 import { Field, Label } from '../../components/catalyst-ui/fieldset'
 import { Input } from '../../components/catalyst-ui/input'
 import { useState } from 'react'
-import { VideoVocabTerm } from "@/data/types"
+import { VideoVocabTerm } from "@/db/models/vocab-term"
 import { foodTermTuples } from '@/data/term-tuples'
 
 export default function FlashCardMaker() {

@@ -1,49 +1,20 @@
 "use server"
-import { Quiz, VideoVocabTerm } from "@/data/types";
+import { Quiz } from "@/data/types";
 import dbConnect from "./mongoose";
-import SimpleVocabTerm from "@/db/models/vocab-term"
+import SimpleVocabTermModel, { SimpleVocabTerm } from "@/db/models/vocab-term"
+import AnnotatedVideoModel, { AnnotatedVideo } from "@/db/models/annotated-video"
 import QuizSchema from "@/db/models/quiz"
-import { resourceUsage } from "process";
+import { YoutubeVideoMetadata } from "@/clients/youtube";
 
-// async function main() {
-// const client = 
-// }
-
-// TODO use interfaces?
-// import mongoose, { Document, Schema, model } from "mongoose";
-
-// // 1. Define the TypeScript interface
-// interface User extends Document {
-//   name: string;
-//   email: string;
-//   age?: number; // Optional field
-// }
-
-// // 2. Define the Mongoose schema based on the TypeScript interface
-// const UserSchema = new Schema<User>({
-//   name: { type: String, required: true },
-//   email: { type: String, required: true, unique: true },
-//   age: { type: Number, required: false },
-// });
-
-// // 3. Create a model that uses the TypeScript type and the Mongoose schema
-// const UserModel = model<User>("User", UserSchema);
-
-// // Example usage with TypeScript type inference
-// const createUser = async () => {
-//   const user = new UserModel({ name: "John Doe", email: "john@example.com" });
-//   await user.save();
-// };
-
-export async function createFlashCardAction(term: VideoVocabTerm) {
+export async function createFlashCardAction(term: SimpleVocabTerm) {
     await dbConnect();
-    const newTerm = await SimpleVocabTerm.create(term)
+    const newTerm = await SimpleVocabTermModel.create(term)
     return JSON.stringify(newTerm.id);
 }
 
-export async function getFlashCardAction(term: VideoVocabTerm) {
+export async function getFlashCardAction(term: SimpleVocabTerm) {
     await dbConnect();
-    const newTerm = SimpleVocabTerm.create(term)
+    const newTerm = SimpleVocabTermModel.create(term)
     return JSON.stringify(newTerm);
 }
 
@@ -52,9 +23,46 @@ export async function createQuizAction(quiz: Quiz) {
     return QuizSchema.create(quiz).then(r => r.id)
 }
 
-export async function getAllQuizsAction():Promise<string> {
+export async function getAllQuizsAction(): Promise<string> {
     await dbConnect();
     const resultPromise = await QuizSchema.find().lean()
     console.log(resultPromise)
     return JSON.stringify(resultPromise)
+}
+
+export async function upsertAnnotatedVideoAction(metadata: YoutubeVideoMetadata): Promise<string> {
+    await dbConnect();
+    const newAnnotatedVideo = await AnnotatedVideoModel.findOneAndUpdate(
+        {videoId: metadata.videoId}, // Selector
+        {...metadata, createdAt: new Date()}, // Data
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).catch(error => {
+        if (error.code === 11000) {
+            console.error("Duplicate videoId detected:", error.message);
+            return AnnotatedVideoModel.findOne({videoId: metadata.videoId})
+          } else {
+            console.error("Error creating video:", error);
+            throw new Error("Error creating new video")
+          }
+    })
+    console.log("CREATED OR FOUND VIDEO", newAnnotatedVideo)
+    return JSON.stringify(newAnnotatedVideo)
+}
+
+export async function getAllAnnotatedVideoAction(): Promise<string> {
+    await dbConnect();
+    const resultPromise = await AnnotatedVideoModel.find().lean()
+    console.log(resultPromise)
+    return JSON.stringify(resultPromise)
+}
+
+export async function updateTermToAnnotatedVideo(term: SimpleVocabTerm, videoId: string) {
+    await dbConnect();
+    const updatedVideo = await AnnotatedVideoModel.findOneAndUpdate(
+        {videoId},
+        { $push: { terms: term } },
+        { new: true } // This option returns the updated document
+    ).lean()
+    console.log(updatedVideo)
+    return JSON.stringify(updatedVideo);
 }

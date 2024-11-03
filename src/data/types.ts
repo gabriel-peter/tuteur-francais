@@ -38,9 +38,4 @@ export interface Quiz {
     items: TermTuple[];
     state: "COMPLETED" | "FAILED" | "NEW";
 };
-export interface VideoVocabTerm {
-    french: string;
-    english: string;
-    misc: string;
-};
 
