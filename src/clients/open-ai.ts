@@ -9,8 +9,8 @@ const TermSchema: z.ZodType<Term> = z.object({
     word: z.string(),
     language: z.nativeEnum(Language),
     type: z.nativeEnum(WordType),
-    otherPossibilies: z.array(z.string()),
-    examples: z.array(z.string()),
+    // otherPossibilies: z.array(z.string()),
+    // examples: z.array(z.string()),
 });
 
 // Create the Zod schema for TermTuple based on the type
@@ -23,8 +23,8 @@ const TermTupleListSchema: z.ZodType<{termTuples: TermTuple[]}> =  z.object({
     termTuples: z.array(TermTupleSchema)
 });
 
-export async function callWithPrompt(partialPrompt: string) {
-    const completion = await openai.chat.completions.create({
+export async function callWithPrompt(partialPrompt: string): Promise<TermTuple[]>  {
+    const completion = await openai.beta.chat.completions.parse({
         model: "gpt-4o-mini",
         messages: [
             { role: "system", content: "You are a flashcard generating assistant. Create 20 Term Tuples of French to English translations." },
@@ -34,8 +34,15 @@ export async function callWithPrompt(partialPrompt: string) {
             },
 
         ],
-        response_format: zodResponseFormat(TermTupleListSchema, "term_tuple_list_schema"),
+        response_format: zodResponseFormat(TermTupleListSchema, "term_tuple_list"),
     });
-    console.log(completion.choices[0].message);
-    return completion.choices[0].message.content; // TODO parse
+    const results = completion.choices[0].message;
+    if (results.refusal) {
+        console.error("Refused:" + results.refusal)
+        throw new Error("Prompt refused.")
+    }
+    if (results.parsed === null) {
+        throw new Error("Unknow Error occurred.")
+    }
+    return results.parsed?.termTuples
 }

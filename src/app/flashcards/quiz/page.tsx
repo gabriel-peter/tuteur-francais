@@ -13,16 +13,17 @@ import { CheckIcon } from "@heroicons/react/24/solid";
 import { ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { idiomTermTuples } from "../../../data/term-tuples";
 import { Switch, SwitchField } from "@/components/catalyst-ui/switch";
-import { ChevronDownIcon, PlusIcon } from "@heroicons/react/16/solid";
+import { ChevronDownIcon, EllipsisHorizontalIcon, PlusIcon } from "@heroicons/react/16/solid";
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
 import { handleKeyDown } from "@/app/utils";
 import { callWithPrompt } from "@/clients/open-ai";
+import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/catalyst-ui/table";
 
 type RequestState = "IDLE" | "LOADING" | "FAILED" | "SUCCESS"
 
 function AIDialogBody() {
     const [requestState, setRequestState] = useState<RequestState>("IDLE")
-    const [termTuples, setTermTuples] = useState<string | null>();
+    const [termTuples, setTermTuples] = useState<TermTuple[]>();
     function sendToOpenAI(prompt: string) {
         console.log(prompt)
         setRequestState("LOADING")
@@ -42,12 +43,62 @@ function AIDialogBody() {
         case "IDLE": return textInput;
         case "FAILED": return (<>{textInput}<Text>Operation Failed {":("}</Text></>)
         case "LOADING": return "LOADING ..."
-        case "SUCCESS": return  QuizCreationPreview(termTuples)
+        case "SUCCESS": if (termTuples) { return <QuizCreationPreview termTuplesProp={termTuples}/> } else {return <>Error Occurred</>}
     }
 }
 
-function QuizCreationPreview(termTupleString: string | undefined) {
-    return <Text>{termTupleString}</Text>
+function QuizCreationPreview({termTuplesProp}:{ termTuplesProp: TermTuple[]}) {
+    // TODO sort by language such that they are not flipped
+    const [termTuples, setTermTuples] = useState(termTuplesProp);
+    function removeTerm(index: number) {
+        setTermTuples(prevItems => prevItems.filter((_, i) => i !== index));
+    }
+    function edit(index: number) {
+
+    }
+    function createQuiz() {
+        // TODO
+    }
+    return (
+        <>
+        <Table className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
+          <TableHead>
+            <TableRow>
+              <TableHeader>French</TableHeader>
+              <TableHeader>English</TableHeader>
+              <TableHeader>Word Type</TableHeader>
+              <TableHeader className="relative w-0">
+                <span className="sr-only">Actions</span>
+              </TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {termTuples?.map((termTuple, index) => (
+              <TableRow key={index}>
+                <TableCell className="font-medium">{termTuple.secondTerm.word}</TableCell>
+                <TableCell>{termTuple.firstTerm.word}</TableCell>
+                <TableCell className="text-zinc-500">{termTuple.firstTerm.type}</TableCell>
+                <TableCell>
+                  <div className="-mx-3 -my-1.5 sm:-mx-2.5">
+                    <Dropdown>
+                      <DropdownButton plain aria-label="More options">
+                        <EllipsisHorizontalIcon />
+                      </DropdownButton>
+                      <DropdownMenu anchor="bottom end">
+                        <DropdownItem onClick={()=> removeTerm(index)}>Remove</DropdownItem>
+                        <DropdownItem>Edit</DropdownItem>
+                        <DropdownItem>Flag</DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <Button onClick={() => createQuiz()}>Create</Button>
+        </>
+      )
 }
 
 
@@ -79,9 +130,9 @@ function QuizGeneratorDialog({isOpen, setIsOpen}: {isOpen: boolean, setIsOpen: (
       </Dropdown> */}
 
       <Dialog open={isOpen} onClose={setIsOpen}>
-        <DialogTitle>Refund payment</DialogTitle>
+        <DialogTitle>Create a new Quiz</DialogTitle>
         <DialogDescription>
-          The refund will be reflected in the customer’s bank account 2 to 3 business days after processing.
+          You can either leverage OpenAI to make you a quiz based on a prompt, or select term manually.
         </DialogDescription>
         <DialogBody>
             {dialogBody()}

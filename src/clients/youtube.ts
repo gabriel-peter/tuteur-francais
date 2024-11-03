@@ -1,4 +1,4 @@
-import { VideoVocabTerm } from "@/app/youtube/page";
+import { VideoVocabTerm } from "@/data/types";
 
 export function extractYoutubeId(url: string): string {
     const regex = /[?&]v=([^&#]*)/;

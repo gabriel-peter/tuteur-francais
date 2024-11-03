@@ -1,5 +1,4 @@
 import { UrlObject } from "url";
-import { TermTuple } from "./types";
 
 export enum Language {
     ENGLISH = "English",
@@ -38,5 +37,10 @@ export type Quiz = {
     title: string;
     items: TermTuple[];
     state?: "COMPLETED" | "FAILED";
+};
+export interface VideoVocabTerm {
+    french: string;
+    english: string;
+    misc: string;
 };
 

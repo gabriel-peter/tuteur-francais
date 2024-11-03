@@ -12,13 +12,8 @@ import { handleKeyDown } from "../utils";
 import { extractYoutubeId, getVideoTitle, Video } from "@/clients/youtube";
 import { reverso } from "@/clients/reverso";
 import Image from 'next/image';
+import { VideoVocabTerm } from "@/data/types";
 
-
-export type VideoVocabTerm = {
-    french: string,
-    english: string,
-    misc: string
-}
 
 function HistoryTable() {
     const emptyTerm = { french: '', english: '', misc: '' };

@@ -11,8 +11,10 @@
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.1.5",
+    "@typegoose/typegoose": "^12.8.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.10",
+    "mongoose": "^8.7.3",
     "next": "15.0.2",
     "openai": "^4.70.2",
     "react": "19.0.0-rc-02c0e824-20241028",

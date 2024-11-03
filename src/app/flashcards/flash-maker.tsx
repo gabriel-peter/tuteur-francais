@@ -1,12 +1,15 @@
+import { createFlashCardAction } from '@/db/actions'
 import { Button } from '../../components/catalyst-ui/button'
 import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from '../../components/catalyst-ui/dialog'
 import { Field, Label } from '../../components/catalyst-ui/fieldset'
 import { Input } from '../../components/catalyst-ui/input'
 import { useState } from 'react'
+import { VideoVocabTerm } from "@/data/types"
+import { foodTermTuples } from '@/data/term-tuples'
 
 export default function FlashCardMaker() {
   let [isOpen, setIsOpen] = useState(false)
-
+  const [quickTerm, setQuickTerm] = useState<VideoVocabTerm>({french: "", english:"", misc:""})
   return (
     <>
       <Button type="button" onClick={() => setIsOpen(true)}>
@@ -20,15 +23,15 @@ export default function FlashCardMaker() {
         <DialogBody>
           <Field>
             <Label>French Term</Label>
-            <Input name="text" placeholder="" autoFocus />
+            <Input value={quickTerm.french} onChange={(event) => setQuickTerm(term => ({...term, french: event.target.value}))} name="text" placeholder="" autoFocus />
           </Field>
           <Field>
             <Label>Translation</Label>
-            <Input name="text" placeholder=""  />
+            <Input value={quickTerm.english} onChange={(event) => setQuickTerm(term => ({...term, english: event.target.value}))} name="text" placeholder=""  />
           </Field>
           <Field>
             <Label>Example sentence</Label>
-            <Input name="text" placeholder=""  />
+            <Input value={quickTerm.misc} onChange={(event) => setQuickTerm(term => ({...term, misc: event.target.value}))} name="text" placeholder=""  />
           </Field>
         </DialogBody>
         <DialogActions>
@@ -36,6 +39,7 @@ export default function FlashCardMaker() {
             Cancel
           </Button>
           <Button onClick={() => setIsOpen(false)}>Create</Button>
+          <Button onClick={() => createFlashCardAction(quickTerm).then(r => console.log(r)).catch(e => console.error(e))}>KITTEN</Button>
         </DialogActions>
       </Dialog>
     </>
