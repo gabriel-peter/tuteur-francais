@@ -66,3 +66,12 @@ export async function updateTermToAnnotatedVideo(term: SimpleVocabTerm, videoId:
     console.log(updatedVideo)
     return JSON.stringify(updatedVideo);
 }
+
+export async function deleteAnnotatedVideoAction(videoId: string) {
+    await dbConnect();
+    const deletedVideo = await AnnotatedVideoModel.findOneAndDelete(
+        {videoId}
+    ).lean()
+    console.log(deletedVideo)
+    return JSON.stringify(deletedVideo);
+}
