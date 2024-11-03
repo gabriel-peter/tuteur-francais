@@ -1,6 +1,6 @@
 "use client"
 import { Heading } from "@/components/catalyst-ui/heading";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CardGrid } from "../page";
 import { advancedTermTuples, foodTermTuples } from "../../../data/term-tuples";
 import { Quiz, TermTuple, WordType } from "@/data/types";
@@ -18,6 +18,8 @@ import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/componen
 import { handleKeyDown } from "@/app/utils";
 import { callWithPrompt } from "@/clients/open-ai";
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/catalyst-ui/table";
+import { createQuizAction, getAllQuizsAction } from "@/db/actions";
+import { Badge } from "@/components/catalyst-ui/badge";
 
 type RequestState = "IDLE" | "LOADING" | "FAILED" | "SUCCESS"
 
@@ -36,18 +38,37 @@ function AIDialogBody() {
         })
     }
     const textInput = <Field>
-    <Label>Prompt</Label>
-    <Input onKeyDown={event => handleKeyDown(event, () => sendToOpenAI(event.currentTarget.value))} name="prompt" placeholder="Make a quiz with ..." />
-  </Field>;
-    switch(requestState) {
+        <Label>Prompt</Label>
+        <Input onKeyDown={event => handleKeyDown(event, () => sendToOpenAI(event.currentTarget.value))} name="prompt" placeholder="Make a quiz with ..." />
+    </Field>;
+    switch (requestState) {
         case "IDLE": return textInput;
         case "FAILED": return (<>{textInput}<Text>Operation Failed {":("}</Text></>)
         case "LOADING": return "LOADING ..."
-        case "SUCCESS": if (termTuples) { return <QuizCreationPreview termTuplesProp={termTuples}/> } else {return <>Error Occurred</>}
+        case "SUCCESS": if (termTuples) { return <QuizCreationPreview termTuplesProp={termTuples} /> } else { return <>Error Occurred</> }
     }
 }
 
-function QuizCreationPreview({termTuplesProp}:{ termTuplesProp: TermTuple[]}) {
+function CreateQuizButton({ termTuplesProp }: { termTuplesProp: TermTuple[] }) {
+    const [requestState, setRequestState] = useState<RequestState>("IDLE");
+    function createQuiz() {
+        setRequestState("LOADING")
+        createQuizAction({ title: "Test", items: termTuplesProp, state: "NEW" })
+            .then(r => {
+                console.log(r);
+                setRequestState("SUCCESS")
+                // Redirect or automatic close?
+            }).catch(e => console.error(e))
+    }
+    switch (requestState) {
+        case "IDLE": return <Button onClick={() => createQuiz()}>Create</Button>
+        case "LOADING": return <Button disabled>Creating ...</Button>
+        case "FAILED": return <Button onClick={() => createQuiz()}>Failed: Try Again</Button>
+        case "SUCCESS": return <Button onClick={() => createQuiz()}>Create</Button>
+    }
+}
+
+function QuizCreationPreview({ termTuplesProp }: { termTuplesProp: TermTuple[] }) {
     // TODO sort by language such that they are not flipped
     const [termTuples, setTermTuples] = useState(termTuplesProp);
     function removeTerm(index: number) {
@@ -56,67 +77,65 @@ function QuizCreationPreview({termTuplesProp}:{ termTuplesProp: TermTuple[]}) {
     function edit(index: number) {
 
     }
-    function createQuiz() {
-        // TODO
-    }
+
     return (
         <>
-        <Table className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
-          <TableHead>
-            <TableRow>
-              <TableHeader>French</TableHeader>
-              <TableHeader>English</TableHeader>
-              <TableHeader>Word Type</TableHeader>
-              <TableHeader className="relative w-0">
-                <span className="sr-only">Actions</span>
-              </TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {termTuples?.map((termTuple, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">{termTuple.secondTerm.word}</TableCell>
-                <TableCell>{termTuple.firstTerm.word}</TableCell>
-                <TableCell className="text-zinc-500">{termTuple.firstTerm.type}</TableCell>
-                <TableCell>
-                  <div className="-mx-3 -my-1.5 sm:-mx-2.5">
-                    <Dropdown>
-                      <DropdownButton plain aria-label="More options">
-                        <EllipsisHorizontalIcon />
-                      </DropdownButton>
-                      <DropdownMenu anchor="bottom end">
-                        <DropdownItem onClick={()=> removeTerm(index)}>Remove</DropdownItem>
-                        <DropdownItem>Edit</DropdownItem>
-                        <DropdownItem>Flag</DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Button onClick={() => createQuiz()}>Create</Button>
+            <Table className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
+                <TableHead>
+                    <TableRow>
+                        <TableHeader>French</TableHeader>
+                        <TableHeader>English</TableHeader>
+                        <TableHeader>Word Type</TableHeader>
+                        <TableHeader className="relative w-0">
+                            <span className="sr-only">Actions</span>
+                        </TableHeader>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {termTuples?.map((termTuple, index) => (
+                        <TableRow key={index}>
+                            <TableCell className="font-medium">{termTuple.secondTerm.word}</TableCell>
+                            <TableCell>{termTuple.firstTerm.word}</TableCell>
+                            <TableCell className="text-zinc-500">{termTuple.firstTerm.type}</TableCell>
+                            <TableCell>
+                                <div className="-mx-3 -my-1.5 sm:-mx-2.5">
+                                    <Dropdown>
+                                        <DropdownButton plain aria-label="More options">
+                                            <EllipsisHorizontalIcon />
+                                        </DropdownButton>
+                                        <DropdownMenu anchor="bottom end">
+                                            <DropdownItem onClick={() => removeTerm(index)}>Remove</DropdownItem>
+                                            <DropdownItem>Edit</DropdownItem>
+                                            <DropdownItem>Flag</DropdownItem>
+                                        </DropdownMenu>
+                                    </Dropdown>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+            <CreateQuizButton termTuplesProp={termTuples} />
         </>
-      )
+    )
 }
 
 
-function QuizGeneratorDialog({isOpen, setIsOpen}: {isOpen: boolean, setIsOpen: (x: boolean) => void}) {
- const [generateOption, setGenerateOption] = useState<"AI"|"MANUAL">();
+function QuizGeneratorDialog({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (x: boolean) => void }) {
+    const [generateOption, setGenerateOption] = useState<"AI" | "MANUAL">();
 
     function dialogBody() {
-        switch(generateOption) {
+        switch (generateOption) {
             case undefined: return <div className="flex justify-evenly">
-            <Button onClick={() => setGenerateOption("AI")}>AI-generate</Button>
-            <Button onClick={() => setGenerateOption("MANUAL")}>Manual</Button>
+                <Button onClick={() => setGenerateOption("AI")}>AI-generate</Button>
+                <Button onClick={() => setGenerateOption("MANUAL")}>Manual</Button>
             </div>
-            case "AI": return <AIDialogBody/>
+            case "AI": return <AIDialogBody />
         }
     }
-  return (
-    <>
-      {/* <Dropdown>
+    return (
+        <>
+            {/* <Dropdown>
         <DropdownButton outline>
         Add new quiz
           <ChevronDownIcon />
@@ -129,29 +148,35 @@ function QuizGeneratorDialog({isOpen, setIsOpen}: {isOpen: boolean, setIsOpen: (
         </DropdownMenu>
       </Dropdown> */}
 
-      <Dialog open={isOpen} onClose={setIsOpen}>
-        <DialogTitle>Create a new Quiz</DialogTitle>
-        <DialogDescription>
-          You can either leverage OpenAI to make you a quiz based on a prompt, or select term manually.
-        </DialogDescription>
-        <DialogBody>
-            {dialogBody()}
-        </DialogBody>
-        {/* <DialogActions>
+            <Dialog open={isOpen} onClose={setIsOpen}>
+                <DialogTitle>Create a new Quiz</DialogTitle>
+                <DialogDescription>
+                    You can either leverage OpenAI to make you a quiz based on a prompt, or select term manually.
+                </DialogDescription>
+                <DialogBody>
+                    {dialogBody()}
+                </DialogBody>
+                {/* <DialogActions>
           <Button plain onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
           <Button onClick={() => setIsOpen(false)}>Refund</Button>
         </DialogActions> */}
-      </Dialog>
-    </>
-  )
+            </Dialog>
+        </>
+    )
 }
-const quizzes = [
-    { title: "Quiz 1", items: advancedTermTuples },
-    { title: "Food 1", items: foodTermTuples },
-    { title: "Idioms - Reverso Context", items: idiomTermTuples }
+const defaultQuizzes: Quiz[] = [
+    { title: "Quiz 1", items: advancedTermTuples, state: "COMPLETED" },
+    { title: "Food 1", items: foodTermTuples, state: "FAILED" },
+    { title: "Idioms - Reverso Context", items: idiomTermTuples, state: "NEW" }
 ]
+
+const QuizStatusToBadge: Record<Quiz["state"], React.ReactNode> = {
+    "NEW": <Badge color="pink">New</Badge>,
+    "COMPLETED": <Badge color="green">Review</Badge>,
+    "FAILED": <Badge color="red">Redo</Badge>
+}
 
 export const QuizCard = ({ quiz, setQuiz }: { quiz: Quiz, setQuiz: (q: Quiz) => void }) => {
     return (
@@ -160,6 +185,7 @@ export const QuizCard = ({ quiz, setQuiz }: { quiz: Quiz, setQuiz: (q: Quiz) => 
             className="rounded-lg shadow-lg p-6 transform transition duration-300 hover:scale-105"
         >
             <h2 className="text-xl font-semibold mb-2">{quiz.title}</h2>
+            {QuizStatusToBadge[quiz.state]}
         </div>
     )
 
@@ -181,9 +207,15 @@ export default function FlashCardQuiz() {
     const [quiz, setQuiz] = useState<Quiz>();
     const [openQuizGenerator, setOpenQuizGenerator] = useState(false);
     const [shuffleEnabled, setShuffleEnabled] = useState(true)
+    const [quizzes, setQuizzes] = useState<Quiz[]>(defaultQuizzes)
+    useEffect(() => {
+        getAllQuizsAction()
+            .then(r => JSON.parse(r))
+            .then((customQuizzes: Quiz[]) => setQuizzes(prevQuizzes => [...prevQuizzes, ...customQuizzes]))
+    }, [])
     return (
         <div>
-            <QuizGeneratorDialog isOpen={openQuizGenerator} setIsOpen={setOpenQuizGenerator}/>
+            <QuizGeneratorDialog isOpen={openQuizGenerator} setIsOpen={setOpenQuizGenerator} />
             {quiz && <QuizPanel quiz={quiz} setQuizShown={() => setQuiz(undefined)} />}
             <div className="flex w-full flex-wrap items-end justify-between gap-4 border-b border-zinc-950/10 pb-6 dark:border-white/10">
                 <Heading>Quiz</Heading>

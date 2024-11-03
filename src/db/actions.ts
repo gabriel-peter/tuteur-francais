@@ -1,7 +1,9 @@
 "use server"
-import { VideoVocabTerm } from "@/data/types";
+import { Quiz, VideoVocabTerm } from "@/data/types";
 import dbConnect from "./mongoose";
 import SimpleVocabTerm from "@/db/models/vocab-term"
+import QuizSchema from "@/db/models/quiz"
+import { resourceUsage } from "process";
 
 // async function main() {
 // const client = 
@@ -43,4 +45,16 @@ export async function getFlashCardAction(term: VideoVocabTerm) {
     await dbConnect();
     const newTerm = SimpleVocabTerm.create(term)
     return JSON.stringify(newTerm);
+}
+
+export async function createQuizAction(quiz: Quiz) {
+    await dbConnect();
+    return QuizSchema.create(quiz).then(r => r.id)
+}
+
+export async function getAllQuizsAction():Promise<string> {
+    await dbConnect();
+    const resultPromise = await QuizSchema.find().lean()
+    console.log(resultPromise)
+    return JSON.stringify(resultPromise)
 }

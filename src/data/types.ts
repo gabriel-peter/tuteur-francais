@@ -33,10 +33,10 @@ export enum WordType {
     ARTICLE = "Article",
     DETERMINER = "Determiner"
 }
-export type Quiz = {
+export interface Quiz {
     title: string;
     items: TermTuple[];
-    state?: "COMPLETED" | "FAILED";
+    state: "COMPLETED" | "FAILED" | "NEW";
 };
 export interface VideoVocabTerm {
     french: string;
