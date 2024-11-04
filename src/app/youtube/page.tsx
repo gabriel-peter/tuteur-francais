@@ -4,7 +4,6 @@ import { Input, InputGroup } from "../../components/catalyst-ui/input";
 import PageHeader from "../../components/page-header";
 import { Description, Field, Label } from "../../components/catalyst-ui/fieldset";
 import { useEffect, useState } from "react";
-import { Button } from "../../components/catalyst-ui/button";
 import { Divider } from "../../components/catalyst-ui/divider";
 import { Heading } from "../../components/catalyst-ui/heading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst-ui/table'
@@ -15,7 +14,8 @@ import { upsertAnnotatedVideoAction as createOrFindAnnotatedVideoAction, deleteA
 import { AnnotatedVideo } from "@/db/models/annotated-video";
 import { HistoryTable } from "./HistoryTable";
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
-import { Alert, AlertActions, AlertDescription, AlertTitle } from "@/components/catalyst-ui/alert";
+import { DeleteDialog } from "../../components/DeleteDialog";
+import { useRouter } from "next/navigation";
 
 
 export default function YoutubeToolHome() {
@@ -63,29 +63,10 @@ export default function YoutubeToolHome() {
     )
 }
 
-function DeleteDialog({ video, setIsOpen, isOpen }: { video: AnnotatedVideo, setIsOpen: (x: boolean) => void, isOpen: boolean }) {
-    async function removeVideo() {
-        return deleteAnnotatedVideoAction(video.videoId)
-    }
-    return (
-        <>
-            <Alert open={isOpen} onClose={setIsOpen}>
-                <AlertTitle>Are you sure you want to delete this annotated video?</AlertTitle>
-                <AlertDescription>
-                    {/* The refund will be reflected in the customer’s bank account 2 to 3 business days after processing. */}
-                </AlertDescription>
-                <AlertActions>
-                    <Button plain onClick={() => setIsOpen(false)}>
-                        Cancel
-                    </Button>
-                    <Button onClick={() => removeVideo().then(() => setIsOpen(false))}>Delete</Button>
-                </AlertActions>
-            </Alert>
-        </>
-    )
-}
-
 function VideoRecents({ videoRecents, setUrl }: { videoRecents: AnnotatedVideo[], setUrl: (x: string) => void }) {
+    if (videoRecents.length === 0) {
+        return <></>
+    }
     return (
         <>
             <Heading>Recently viewed</Heading>
@@ -109,11 +90,16 @@ function VideoRecents({ videoRecents, setUrl }: { videoRecents: AnnotatedVideo[]
 
 function VideoRecentRow({ setUrl, video }: { setUrl: (x: string) => void, video: AnnotatedVideo }) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const router = useRouter();
     return (
         <>
-            <DeleteDialog video={video} isOpen={showDeleteDialog} setIsOpen={setShowDeleteDialog} />
-            <TableRow> 
-                {/* <DeleteDialog video={video}, isOpen/> */}
+            <DeleteDialog
+                action={() => deleteAnnotatedVideoAction(video.videoId).then(() => router.refresh())}
+                isOpen={showDeleteDialog}
+                title="Are you sure you want to delete this annotated video?"
+                setIsOpen={setShowDeleteDialog}
+            />
+            <TableRow>
                 <TableCell onClick={() => setUrl(`https://www.youtube.com/watch?v=${video.videoId}`)}>
                     <div className="flex items-center gap-4">
                         <Image

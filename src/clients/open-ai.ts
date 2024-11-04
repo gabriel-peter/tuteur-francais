@@ -1,5 +1,5 @@
 
-import { Language, Term, TermTuple, WordType } from "@/data/types";
+import { Language, Term, TermTuple, WordType } from "@/db/types";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 const openai = new OpenAI({ apiKey: process.env.NEXT_PUBLIC_OPEN_AI_API_KEY, dangerouslyAllowBrowser: true });

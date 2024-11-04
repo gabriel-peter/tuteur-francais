@@ -1,9 +1,9 @@
 "use client"
 import { Heading } from "@/components/catalyst-ui/heading";
 import { useEffect, useState } from "react";
-import { CardGrid } from "../page";
-import { advancedTermTuples, foodTermTuples } from "../../../data/term-tuples";
-import { Quiz, TermTuple, WordType } from "@/data/types";
+import { CardGrid } from "../flashcards/page";
+import { advancedTermTuples, foodTermTuples } from "../../test-data/term-tuples";
+import { Language, Quiz, TermTuple, WordType } from "@/db/types";
 import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/components/catalyst-ui/dialog";
 import { Field, Label } from "@/components/catalyst-ui/fieldset";
 import { Button } from "@/components/catalyst-ui/button";
@@ -11,17 +11,19 @@ import { Input } from "@/components/catalyst-ui/input";
 import { Text } from '@/components/catalyst-ui/text'
 import { CheckIcon } from "@heroicons/react/24/solid";
 import { ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/20/solid";
-import { idiomTermTuples } from "../../../data/term-tuples";
+import { idiomTermTuples } from "../../test-data/term-tuples";
 import { Switch, SwitchField } from "@/components/catalyst-ui/switch";
 import { ChevronDownIcon, EllipsisHorizontalIcon, PlusIcon } from "@heroicons/react/16/solid";
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
 import { handleKeyDown } from "@/app/utils";
 import { callWithPrompt } from "@/clients/open-ai";
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/catalyst-ui/table";
-import { createQuizAction, getAllQuizsAction } from "@/db/actions";
+import { createQuizAction, getAllAnnotatedVideoAction, getAllQuizsAction } from "@/db/actions";
 import { Badge } from "@/components/catalyst-ui/badge";
-
-type RequestState = "IDLE" | "LOADING" | "FAILED" | "SUCCESS"
+import { AnnotatedVideo } from "@/db/models/annotated-video";
+import { Select } from "@/components/catalyst-ui/select";
+import { useRouter } from "next/navigation";
+import { RequestState, LoadingButton } from "../../components/LoadingButton";
 
 function AIDialogBody() {
     const [requestState, setRequestState] = useState<RequestState>("IDLE")
@@ -120,17 +122,100 @@ function QuizCreationPreview({ termTuplesProp }: { termTuplesProp: TermTuple[] }
     )
 }
 
+function ManualDialogBody() {
+    return (<>
+    </>);
+}
+
+function VideoSourceDialogBody() {
+    const router = useRouter();
+    const [recentVideos, setRecentVideos] = useState<AnnotatedVideo[]>()
+    const [selectedVideoIndex, setSelectedVideoIndex] = useState<number>();
+    useEffect(() => { // Load annotated videos
+        getAllAnnotatedVideoAction().then(res => JSON.parse(res)).then(recentVideos => setRecentVideos(recentVideos)) // TODO LIMIT
+    }, [])
+
+    function createQuiz(video: AnnotatedVideo) {
+        const newQuiz: Quiz = {
+            title: video.title,
+            items: video.terms?.map(term => ({
+                firstTerm: {
+                    word: term.english,
+                    language: Language.ENGLISH
+                },
+                secondTerm: {
+                    word: term.french,
+                    language: Language.FRENCH
+                }
+            })) || [],
+            state: "NEW"
+        }
+        return createQuizAction(newQuiz)
+    }
+
+    return (
+        <>
+            {recentVideos ? (
+                <Field>
+                    <Label>Recent Videos</Label>
+                    <Select name="selected-video" value={selectedVideoIndex} onChange={(e) => setSelectedVideoIndex(Number.parseInt(e.currentTarget.value))}>
+                        <option value={undefined}>--</option>
+                        {recentVideos.map((video, index) => <option key={index} value={index}>{video.title} [Terms:{video.terms?.length}]</option>)}
+                    </Select>
+                </Field>
+            ) :
+                <Text>No videos have been annotated</Text>
+            }
+            {recentVideos && selectedVideoIndex != null &&
+                <>
+                    <Table striped className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
+                        <TableHead>
+                            <TableRow>
+                                <TableHeader></TableHeader>
+                                <TableHeader></TableHeader>
+                                <TableHeader></TableHeader>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {recentVideos[selectedVideoIndex]?.terms?.map((term, index) => (
+                                <TableRow key={index}>
+                                    <TableCell className="font-medium">{term.french}</TableCell>
+                                    <TableCell>{term.english}</TableCell>
+                                    <TableCell className="text-zinc-500">{term.misc}</TableCell>
+                                </TableRow>
+                            ))
+                            }
+                        </TableBody>
+                    </Table>
+                    <LoadingButton
+                        action={() => createQuiz(recentVideos[selectedVideoIndex]).then(() => router.refresh())}
+                        requestStateMap={{
+                            "SUCCESS": "Create Quiz",
+                            "LOADING": "Loading ...",
+                            "FAILED": "Failed: Try Again",
+                            "IDLE": "Create Quiz"
+                        }}
+                    />
+                </>
+            }
+
+        </>)
+
+}
 
 function QuizGeneratorDialog({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (x: boolean) => void }) {
-    const [generateOption, setGenerateOption] = useState<"AI" | "MANUAL">();
+    const [generateOption, setGenerateOption] = useState<"AI" | "VIDEO-SOURCE" | "MANUAL">();
 
     function dialogBody() {
         switch (generateOption) {
             case undefined: return <div className="flex justify-evenly">
                 <Button onClick={() => setGenerateOption("AI")}>AI-generate</Button>
                 <Button onClick={() => setGenerateOption("MANUAL")}>Manual</Button>
+                <Button onClick={() => setGenerateOption("VIDEO-SOURCE")}>From Video</Button>
             </div>
             case "AI": return <AIDialogBody />
+            case "MANUAL": return <ManualDialogBody />
+            case "VIDEO-SOURCE": return <VideoSourceDialogBody />
         }
     }
     return (

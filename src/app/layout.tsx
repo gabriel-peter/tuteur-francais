@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -56,6 +56,7 @@ import {
   InboxIcon,
   MagnifyingGlassIcon,
   MegaphoneIcon,
+  PuzzlePieceIcon,
   QuestionMarkCircleIcon,
   SparklesIcon,
   Square2StackIcon,
@@ -63,7 +64,13 @@ import {
 } from '@heroicons/react/20/solid'
 import { VideoCameraIcon } from "@heroicons/react/20/solid";
 
-function HomeLayout({children}: {children: React.ReactNode}) {
+const LINKS: { title: string, icon?: React.ReactNode, href: Route }[] = [
+  { title: "Flash Cards", href: "/flashcards", icon: <Square2StackIcon /> },
+  { title: "Quiz", href: "/quiz", icon: <PuzzlePieceIcon /> },
+  { title: "Youtube", href: "/youtube", icon: <VideoCameraIcon /> }
+]
+
+function HomeLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarLayout
       navbar={
@@ -151,26 +158,11 @@ function HomeLayout({children}: {children: React.ReactNode}) {
           </SidebarHeader>
           <SidebarBody>
             <SidebarSection>
-              <SidebarItem href="/">
-                <HomeIcon />
-                <SidebarLabel>Home</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href="/flashcards">
-                <Square2StackIcon />
-                <SidebarLabel>Flash Cards</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href="/youtube">
-                <VideoCameraIcon />
-                <SidebarLabel>Youtube</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href="/settings">
-                <Cog6ToothIcon />
-                <SidebarLabel>Settings</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href="/broadcasts">
-                <MegaphoneIcon />
-                <SidebarLabel>Broadcasts</SidebarLabel>
-              </SidebarItem>
+              { LINKS.map((link, index) =>
+                <SidebarItem key={index} href={link.href}>
+                  {link.icon}
+                  <SidebarLabel>{link.title}</SidebarLabel>
+                </SidebarItem>)}
             </SidebarSection>
             <SidebarSection className="max-lg:hidden">
               <SidebarHeading>Recently Viewed</SidebarHeading>
@@ -250,7 +242,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <HomeLayout>
-        {children}
+          {children}
         </HomeLayout>
       </body>
     </html>

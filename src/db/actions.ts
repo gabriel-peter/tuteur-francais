@@ -1,5 +1,5 @@
 "use server"
-import { Quiz } from "@/data/types";
+import { Quiz } from "./types";
 import dbConnect from "./mongoose";
 import SimpleVocabTermModel, { SimpleVocabTerm } from "@/db/models/vocab-term"
 import AnnotatedVideoModel, { AnnotatedVideo } from "@/db/models/annotated-video"
@@ -33,17 +33,17 @@ export async function getAllQuizsAction(): Promise<string> {
 export async function upsertAnnotatedVideoAction(metadata: YoutubeVideoMetadata): Promise<string> {
     await dbConnect();
     const newAnnotatedVideo = await AnnotatedVideoModel.findOneAndUpdate(
-        {videoId: metadata.videoId}, // Selector
-        {...metadata, createdAt: new Date()}, // Data
+        { videoId: metadata.videoId }, // Selector
+        { ...metadata, createdAt: new Date() }, // Data
         { upsert: true, new: true, setDefaultsOnInsert: true }
     ).catch(error => {
         if (error.code === 11000) {
             console.error("Duplicate videoId detected:", error.message);
-            return AnnotatedVideoModel.findOne({videoId: metadata.videoId})
-          } else {
+            return AnnotatedVideoModel.findOne({ videoId: metadata.videoId })
+        } else {
             console.error("Error creating video:", error);
             throw new Error("Error creating new video")
-          }
+        }
     })
     console.log("CREATED OR FOUND VIDEO", newAnnotatedVideo)
     return JSON.stringify(newAnnotatedVideo)
@@ -59,7 +59,7 @@ export async function getAllAnnotatedVideoAction(): Promise<string> {
 export async function updateTermToAnnotatedVideo(term: SimpleVocabTerm, videoId: string) {
     await dbConnect();
     const updatedVideo = await AnnotatedVideoModel.findOneAndUpdate(
-        {videoId},
+        { videoId },
         { $push: { terms: term } },
         { new: true } // This option returns the updated document
     ).lean()
@@ -67,10 +67,27 @@ export async function updateTermToAnnotatedVideo(term: SimpleVocabTerm, videoId:
     return JSON.stringify(updatedVideo);
 }
 
+export async function removeTermFromAnnotatedVideo(termToRemove: SimpleVocabTerm, videoId: string) {
+    await dbConnect();
+    const video = await AnnotatedVideoModel.findOneAndUpdate(
+        { videoId },
+        {
+            $pull: {
+                terms: {
+                    french: termToRemove.french,
+                    english: termToRemove.english,
+                },
+            },
+        },
+        { new: true } // Returns the updated document after removal
+    );
+    return JSON.stringify(video);
+}
+
 export async function deleteAnnotatedVideoAction(videoId: string) {
     await dbConnect();
     const deletedVideo = await AnnotatedVideoModel.findOneAndDelete(
-        {videoId}
+        { videoId }
     ).lean()
     console.log(deletedVideo)
     return JSON.stringify(deletedVideo);

@@ -1,5 +1,5 @@
 
-export async function reverso(text: string) {
+export async function reverso(text: string, from: "fr" | "en",  to: "fr" | "en") {
     return fetch("https://api.reverso.net/translate/v1/translation", {
         method: 'POST',
         headers: {
@@ -7,7 +7,7 @@ export async function reverso(text: string) {
         },
         body: JSON.stringify({
             format: 'text',
-            from: "fr",
+            from: from,
             input: text,
             options: {
                 contextResults: true,
@@ -15,10 +15,10 @@ export async function reverso(text: string) {
                 origin: 'reversomobile',
                 sentenceSplitter: false,
             },
-            to: "en"
+            to: to
         })
     })
-        .then(res => res.json());
+        .then(res => { console.log(res); return res.json()} );
     // .then(res => )
     // .then(res => console.log(res))
 }

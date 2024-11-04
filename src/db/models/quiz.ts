@@ -1,5 +1,5 @@
-import { Quiz } from "@/data/types";
 import mongoose from "mongoose";
+import { Quiz } from "../types";
 
 const TermSchema = new mongoose.Schema({
     word: { type: String, required: true },
@@ -16,7 +16,6 @@ const TermTupleSchema = new mongoose.Schema({
     secondTerm: { type: TermSchema, required: true },
 });
 
-
 export interface MongoQuiz extends Quiz, mongoose.Document { }
 const QuizSchema = new mongoose.Schema({
     title: { type: String, required: true },
@@ -27,4 +26,5 @@ const QuizSchema = new mongoose.Schema({
         default: "NEW"
     },
 });
-export default mongoose.models.Quiz || mongoose.model<MongoQuiz>("Quiz", QuizSchema)
+
+export default mongoose.models.Quiz || mongoose.model<MongoQuiz>("Quiz", QuizSchema);

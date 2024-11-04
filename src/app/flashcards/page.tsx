@@ -4,8 +4,8 @@ import { Divider } from "../../components/catalyst-ui/divider";
 import { Heading } from "../../components/catalyst-ui/heading";
 import FlashCardMaker from "./flash-maker";
 import { Button } from "@/components/catalyst-ui/button";
-import { TermTuple } from "@/data/types";
-import { advancedTermTuples } from "../../data/term-tuples";
+import { TermTuple } from "@/db/types";
+import { advancedTermTuples } from "../../test-data/term-tuples";
 
 export default function FlashCardHome() {
     return (
@@ -14,7 +14,7 @@ export default function FlashCardHome() {
                 <Heading>Flash Cards</Heading>
                 <div className="flex gap-4">
                     <Button href="/flashcards/quiz">Quiz</Button> 
-                    <FlashCardMaker />
+                    {/* <FlashCardMaker /> */}
                 </div>
             </div>
             <Divider />

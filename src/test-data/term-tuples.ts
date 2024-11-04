@@ -1,5 +1,5 @@
-import { TermTuple, WordType } from "@/data/types";
-import { Language } from "@/data/types";
+import { TermTuple, WordType } from "@/db/types";
+import { Language } from "@/db/types";
 
 export const idiomTermTuples: TermTuple[] = [
     {

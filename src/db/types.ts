@@ -1,25 +1,26 @@
-import { UrlObject } from "url";
 
 export enum Language {
     ENGLISH = "English",
     FRENCH = "French"
 }
 
-export type Term = {
+export interface Term {
     word: string;
     type?: WordType;
     otherPossibilies?: string[];
     language: Language;
     examples?: string[];
-};
+}
+;
 
-export type TermTuple = {
+export interface TermTuple {
     firstTerm: Term;
     secondTerm: Term;
     assets?: {
-        imgUrl: UrlObject;
+        imgUrl: string;
     };
-};
+}
+;
 
 export enum WordType {
     NOUN = "Noun",
@@ -37,5 +38,4 @@ export interface Quiz {
     title: string;
     items: TermTuple[];
     state: "COMPLETED" | "FAILED" | "NEW";
-};
-
+}
