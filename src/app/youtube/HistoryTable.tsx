@@ -77,7 +77,7 @@ export function HistoryTable({ video: videoProp }: { video: AnnotatedVideo }) {
                             </TableCell>);
                     })}
                 </TableRow>
-                {video.terms && video.terms.map((term, index) => (
+                {video.terms && video.terms.toReversed().map((term, index) => (
                     <TableRow key={index}>
                         <TableCell className="text-right font-medium">{term.french}</TableCell>
                         <TableCell className="text-right"><Text>{term.english}</Text></TableCell>

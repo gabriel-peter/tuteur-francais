@@ -8,7 +8,7 @@ import { Divider } from "../../components/catalyst-ui/divider";
 import { Heading } from "../../components/catalyst-ui/heading";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/catalyst-ui/table'
 import { handleKeyDown } from "../utils";
-import { extractYoutubeId, getVideoTitle as getVideoMetadata, YoutubeVideoMetadata } from "@/clients/youtube";
+import { extractYoutubeId, getCaptions, getVideoMetadata as getVideoMetadata, YoutubeVideoMetadata } from "@/clients/youtube";
 import Image from 'next/image';
 import { upsertAnnotatedVideoAction as createOrFindAnnotatedVideoAction, deleteAnnotatedVideoAction, getAllAnnotatedVideoAction } from "@/db/actions";
 import { AnnotatedVideo } from "@/db/models/annotated-video";
@@ -131,6 +131,13 @@ function VideoRecentRow({ setUrl, video }: { setUrl: (x: string) => void, video:
     );
 }
 
+function Captions({video} : {video: AnnotatedVideo}) {
+    useEffect(() => {
+        getCaptions(video.videoId)
+    }, []);
+    return (<div></div>)
+}
+
 function VideoNoteTool({ video }: { video: AnnotatedVideo }) {
     return <>
         <div className="relative w-full h-0"
@@ -148,5 +155,6 @@ function VideoNoteTool({ video }: { video: AnnotatedVideo }) {
         <Divider />
         <Heading>Notes - «{video.title}»</Heading>
         <HistoryTable video={video} />
+        <Captions video={video} />
     </>;
 }

@@ -18,7 +18,7 @@ export async function reverso(text: string, from: "fr" | "en",  to: "fr" | "en")
             to: to
         })
     })
-        .then(res => { console.log(res); return res.json()} );
+        .then(res => {  return res.json()} ).then(r => { console.log(r); return r;});
     // .then(res => )
     // .then(res => console.log(res))
 }

@@ -51,6 +51,7 @@ import {
   UserIcon,
 } from '@heroicons/react/16/solid'
 import {
+  BookOpenIcon,
   Cog6ToothIcon,
   HomeIcon,
   InboxIcon,
@@ -67,7 +68,9 @@ import { VideoCameraIcon } from "@heroicons/react/20/solid";
 const LINKS: { title: string, icon?: React.ReactNode, href: Route }[] = [
   { title: "Flash Cards", href: "/flashcards", icon: <Square2StackIcon /> },
   { title: "Quiz", href: "/quiz", icon: <PuzzlePieceIcon /> },
-  { title: "Youtube", href: "/youtube", icon: <VideoCameraIcon /> }
+  { title: "Youtube", href: "/youtube", icon: <VideoCameraIcon /> },
+  { title: "News", href: "/news", icon: <BookOpenIcon /> }
+
 ]
 
 function HomeLayout({ children }: { children: React.ReactNode }) {

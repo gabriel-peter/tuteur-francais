@@ -1,4 +1,6 @@
-import { VideoVocabTerm } from "@/db/models/vocab-term";
+// TODO "use server"
+
+const apiKey =  process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
 
 export function extractYoutubeId(url: string): string {
     const regex = /[?&]v=([^&#]*)/;
@@ -13,8 +15,8 @@ export function extractYoutubeId(url: string): string {
     }
 }
 
-export async function getVideoTitle(url: string): Promise<YoutubeVideoMetadata> {
-    const apiKey =  process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+export async function getVideoMetadata(url: string): Promise<YoutubeVideoMetadata> {
+    
     console.log(apiKey);
     const videoId = extractYoutubeId(url); // Extract video ID from URL
 
@@ -28,6 +30,24 @@ export async function getVideoTitle(url: string): Promise<YoutubeVideoMetadata> 
     } else {
         throw new Error('Video not found');
     }
+}
+
+export async function getCaptions(videoId: string) {
+  return fetch(`https://www.googleapis.com/youtube/v3/captions?videoId=${videoId}&key=${apiKey}`)
+  .then(response => response.json())
+  .then(data => data.items[0].id) // termed which item in the array
+  .then(captionId => extractCaptions(captionId))
+  .catch(error => console.error('Error fetching captions:', error));
+}
+
+async function extractCaptions(captionId: string) {
+    return fetch(`https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=srt&key=${apiKey}`)
+    .then(response => response.text())
+    .then(captions => {
+      console.log('Captions content:', captions);
+      return captions
+    })
+    .catch(error => console.error('Error fetching caption content:', error));
 }
 
 export type YoutubeVideoMetadata = {

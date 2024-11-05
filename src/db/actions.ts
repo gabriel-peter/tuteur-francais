@@ -1,10 +1,12 @@
 "use server"
-import { Quiz } from "./types";
+import { Quiz, TermTuple } from "./types";
 import dbConnect from "./mongoose";
 import SimpleVocabTermModel, { SimpleVocabTerm } from "@/db/models/vocab-term"
 import AnnotatedVideoModel, { AnnotatedVideo } from "@/db/models/annotated-video"
 import QuizSchema from "@/db/models/quiz"
 import { YoutubeVideoMetadata } from "@/clients/youtube";
+import AnnotatedExcerptModel, { AnnotatedExcerpt } from "./models/excerpt";
+import { error } from "console";
 
 export async function createFlashCardAction(term: SimpleVocabTerm) {
     await dbConnect();
@@ -91,4 +93,29 @@ export async function deleteAnnotatedVideoAction(videoId: string) {
     ).lean()
     console.log(deletedVideo)
     return JSON.stringify(deletedVideo);
+}
+
+export async function createAnnotatedExcerptAction(newAnnotatedExcerpt: AnnotatedExcerpt): Promise<string> {
+    await dbConnect();
+    const newExcerpt = await AnnotatedExcerptModel.create(newAnnotatedExcerpt)
+    console.log(newExcerpt)
+    return newExcerpt.id;
+}
+
+export async function getExerptAction(excerptId: string): Promise<any> {
+    await dbConnect();
+    const foundExcerpt = await AnnotatedExcerptModel.findById(excerptId).lean();
+    console.log(foundExcerpt)
+    return JSON.stringify(foundExcerpt);
+}
+
+export async function updateTermToAnnotatedExcertAction(term: TermTuple, excerptId: string) {
+    await dbConnect();
+    const updated = await AnnotatedExcerptModel.findOneAndUpdate(
+        {id: excerptId},
+        { $push: { terms: term } },
+        { new: true } // This option returns the updated document
+    ).lean().catch(error => console.error(error))
+    console.log("updateTermToAnnotatedExcertAction", updated)
+    return JSON.stringify(updated);
 }

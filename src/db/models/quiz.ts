@@ -8,10 +8,10 @@ const TermSchema = new mongoose.Schema({
         enum: ["English", "French"],
         required: true
     },
-    examples: [String],
+    examples: {type: [String], required: false},
 });
 
-const TermTupleSchema = new mongoose.Schema({
+export const TermTupleSchema = new mongoose.Schema({
     firstTerm: { type: TermSchema, required: true },
     secondTerm: { type: TermSchema, required: true },
 });
