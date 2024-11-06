@@ -3,10 +3,9 @@ import { Quiz, TermTuple } from "./types";
 import dbConnect from "./mongoose";
 import SimpleVocabTermModel, { SimpleVocabTerm } from "@/db/models/vocab-term"
 import AnnotatedVideoModel, { AnnotatedVideo } from "@/db/models/annotated-video"
-import QuizSchema from "@/db/models/quiz"
+import QuizSchema, { MongoTermTuple } from "@/db/models/quiz/quiz"
 import { YoutubeVideoMetadata } from "@/clients/youtube";
-import AnnotatedExcerptModel, { AnnotatedExcerpt } from "./models/excerpt";
-import { error } from "console";
+import AnnotatedExcerptModel, { AnnotatedExcerpt, MongoAnnotatedExcerpt } from "./models/excerpt";
 
 export async function createFlashCardAction(term: SimpleVocabTerm) {
     await dbConnect();
@@ -104,18 +103,72 @@ export async function createAnnotatedExcerptAction(newAnnotatedExcerpt: Annotate
 
 export async function getExerptAction(excerptId: string): Promise<any> {
     await dbConnect();
-    const foundExcerpt = await AnnotatedExcerptModel.findById(excerptId).lean();
+    const foundExcerpt = await AnnotatedExcerptModel.findById(excerptId);
     console.log(foundExcerpt)
     return JSON.stringify(foundExcerpt);
+}
+
+export async function getAllExerptsAction(): Promise<any> {
+    await dbConnect();
+    const foundExcerpts = await AnnotatedExcerptModel.find().lean();
+    console.log(foundExcerpts)
+    return JSON.stringify(foundExcerpts);
 }
 
 export async function updateTermToAnnotatedExcertAction(term: TermTuple, excerptId: string) {
     await dbConnect();
     const updated = await AnnotatedExcerptModel.findOneAndUpdate(
-        {id: excerptId},
+        { id: excerptId },
         { $push: { terms: term } },
         { new: true } // This option returns the updated document
     ).lean().catch(error => console.error(error))
     console.log("updateTermToAnnotatedExcertAction", updated)
     return JSON.stringify(updated);
+}
+
+export async function removeTermFromAnnotatedExcerpt(termToRemove: TermTuple, excerptId: string) {
+    await dbConnect();
+    console.log(termToRemove)
+    const excerpt = await AnnotatedExcerptModel.findOneAndUpdate(
+        { id: excerptId },
+        {
+            $pull: {
+                terms: termToRemove
+            },
+        },
+        { new: true } // Returns the updated document after removal
+    ).lean().catch(error => console.log(error));
+    return JSON.stringify(excerpt);
+}
+
+export async function updateTermFromAnnotatedExcerptAction(newTermTuple: TermTuple, oldTermTuple: TermTuple, excerptId: string) {
+    await dbConnect();
+
+    // First, find the document to get the existing terms array
+    const excerpt: MongoAnnotatedExcerpt | null = await AnnotatedExcerptModel.findById(excerptId);
+    if (!excerpt) {
+        console.warn("No excerpt found during update: ", excerptId)
+        return null;
+    }
+    // Find the index of the term to update based on full match
+    const termIndex = excerpt.terms.findIndex(term =>
+        JSON.stringify(term) === JSON.stringify(oldTermTuple)
+    );
+
+    if (termIndex !== -1) {
+        // Update the term at the found index
+        excerpt.terms[termIndex] = newTermTuple;
+
+        // Save the updated terms array
+        const updatedExcerpt = await AnnotatedExcerptModel.findOneAndUpdate(
+            { id: excerptId },
+            { terms: excerpt.terms },
+            { new: true, overwrite: true }
+        ).lean();
+
+        return JSON.stringify(updatedExcerpt);
+    } else {
+        console.error("No term match to update: ", newTermTuple, oldTermTuple)
+        return null; // No matching term found
+    }
 }

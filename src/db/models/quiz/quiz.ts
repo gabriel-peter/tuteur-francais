@@ -1,17 +1,20 @@
 import mongoose from "mongoose";
-import { Quiz } from "../types";
+import { Quiz, Term, TermTuple } from "../../types";
 
-const TermSchema = new mongoose.Schema({
+export interface MongoTerm extends Term, mongoose.Document { }
+const TermSchema = new mongoose.Schema<Term>({
     word: { type: String, required: true },
     language: {
         type: String,
         enum: ["English", "French"],
         required: true
     },
+    otherPossibilies: {type: [String], required: false},
     examples: {type: [String], required: false},
 });
 
-export const TermTupleSchema = new mongoose.Schema({
+export interface MongoTermTuple extends TermTuple, mongoose.Document { }
+export const TermTupleSchema = new mongoose.Schema<TermTuple>({
     firstTerm: { type: TermSchema, required: true },
     secondTerm: { type: TermSchema, required: true },
 });

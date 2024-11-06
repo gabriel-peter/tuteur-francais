@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { TermTupleSchema } from "./quiz";
+import { TermTupleSchema } from "./quiz/quiz";
 import { TermTuple } from "../types";
 
 export interface AnnotatedExcerpt {
