@@ -11,7 +11,7 @@ import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
 import AnnotatedExcerptModel, { AnnotatedExcerpt, MongoAnnotatedExcerpt } from "@/db/models/excerpt";
 import { TextWithActions } from "@/components/TextWithActions";
 import { getExerptAction, removeTermFromAnnotatedExcerpt, updateTermFromAnnotatedExcerptAction, updateTermToAnnotatedExcertAction } from "@/db/actions";
-import { reverso, TranslationResponse } from "@/clients/reverso";
+import { reverso, toTermTuple, TranslationResponse } from "@/clients/reverso";
 import { Language, Term, TermTuple } from "@/db/types";
 import { MongoTermTuple } from "@/db/models/quiz/quiz";
 import { Input } from "@/components/catalyst-ui/input";
@@ -32,19 +32,7 @@ export default function NewsTool({ params }: { params: Promise<{ excerptId: stri
         // alert("Text copied!");
         // return new Promise(() => { });
         return reverso(selectedText, "fr", "en")
-            .then((res: TranslationResponse): TermTuple => ({
-                firstTerm: {
-                    word: selectedText,
-                    examples: res.contextResults.results.flatMap(r => r.sourceExamples),
-                    language: Language.FRENCH,
-                },
-                secondTerm: {
-                    word: res.translation[0],
-                    otherPossibilies: res.contextResults.results.map(r => r.translation),
-                    examples: res.contextResults.results.flatMap(r => r.targetExamples),
-                    language: Language.ENGLISH
-                }
-            })).then(term => updateTermToAnnotatedExcertAction(term, excerptId))
+            .then(response => toTermTuple(selectedText, response)).then(term => updateTermToAnnotatedExcertAction(term, excerptId))
             .then(res => JSON.parse(res))
             .then(updatedExcerpt => setExcerpt(updatedExcerpt))
             .catch(error => console.error(error))

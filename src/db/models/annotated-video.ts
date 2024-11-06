@@ -1,3 +1,5 @@
+import { TermTuple } from "../types";
+import { TermTupleSchema } from "./quiz/quiz";
 import { SimpleVocabTerm, SimpleVocabTermSchema } from "./vocab-term";
 import mongoose from "mongoose";
 
@@ -6,7 +8,7 @@ export interface AnnotatedVideo {
     videoId: string,
     thumbnailUrl: string, 
     createdAt: Date,
-    terms?: SimpleVocabTerm[]
+    terms: TermTuple[]
 }
 
 export interface MongoAnnotatedVideo extends AnnotatedVideo, mongoose.Document {};
@@ -15,7 +17,7 @@ const AnnotatedVideoSchema = new mongoose.Schema<MongoAnnotatedVideo>({
     videoId: {type: String, required: true, unique: true}, // TODO this needs to be unique PER user.
     thumbnailUrl: {type: String, required: true},
     createdAt: {type: Date, required: true},
-    terms: {type: [SimpleVocabTermSchema], required: false}
+    terms: {type: [TermTupleSchema], required: false, default: []}
 })
 
 export default mongoose.models.AnnotatedVideo || mongoose.model<MongoAnnotatedVideo>("AnnotatedVideo", AnnotatedVideoSchema)

@@ -57,7 +57,7 @@ export async function getAllAnnotatedVideoAction(): Promise<string> {
     return JSON.stringify(resultPromise)
 }
 
-export async function updateTermToAnnotatedVideo(term: SimpleVocabTerm, videoId: string) {
+export async function updateTermToAnnotatedVideo(term: TermTuple, videoId: string) {
     await dbConnect();
     const updatedVideo = await AnnotatedVideoModel.findOneAndUpdate(
         { videoId },
@@ -68,16 +68,13 @@ export async function updateTermToAnnotatedVideo(term: SimpleVocabTerm, videoId:
     return JSON.stringify(updatedVideo);
 }
 
-export async function removeTermFromAnnotatedVideo(termToRemove: SimpleVocabTerm, videoId: string) {
+export async function removeTermFromAnnotatedVideo(termToRemove: TermTuple, videoId: string) {
     await dbConnect();
     const video = await AnnotatedVideoModel.findOneAndUpdate(
         { videoId },
         {
             $pull: {
-                terms: {
-                    french: termToRemove.french,
-                    english: termToRemove.english,
-                },
+                terms: termToRemove
             },
         },
         { new: true } // Returns the updated document after removal

@@ -1,3 +1,5 @@
+import { Language, TermTuple } from "@/db/types";
+
 export interface TranslationResponse {
     id: string;
     from: string;
@@ -36,8 +38,25 @@ export interface TranslationResponse {
     timeTaken: number;
 }
 
+export function toTermTuple(searchText: string, res: TranslationResponse): TermTuple {
+    return {
+        firstTerm: {
+            word: searchText,
+            examples: res.contextResults.results.flatMap(r => r.sourceExamples).filter(r => r !== ''),
+            language: Language.FRENCH,
+        },
+        secondTerm: {
+            word: res.translation[0],
+            otherPossibilies: res.contextResults.results.map(r => r.translation).filter(r => r !== ''),
+            examples: res.contextResults.results.flatMap(r => r.targetExamples).filter(r => r !== ''),
+            language: Language.ENGLISH
+        }
+    }
+}
 
-export async function reverso(text: string, from: "fr" | "en",  to: "fr" | "en"): Promise<TranslationResponse> {
+
+export async function reverso(text: string, from: "fr" | "en", to: "fr" | "en"): Promise<TranslationResponse> {
+    // "use server"
     return fetch("https://api.reverso.net/translate/v1/translation", {
         method: 'POST',
         headers: {
@@ -56,5 +75,5 @@ export async function reverso(text: string, from: "fr" | "en",  to: "fr" | "en")
             to: to
         })
     })
-        .then(res => {  return res.json()} ).then(r => { console.log(r); return r;});
+        .then(res => { return res.json() }).then(r => { console.log(r); return r; });
 }

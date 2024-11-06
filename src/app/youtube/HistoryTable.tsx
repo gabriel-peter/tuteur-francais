@@ -1,5 +1,5 @@
 "use client";
-import { reverso } from "@/clients/reverso";
+import { reverso, toTermTuple } from "@/clients/reverso";
 import { Input } from "@/components/catalyst-ui/input";
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/catalyst-ui/table";
 import { SimpleVocabTerm } from "@/db/models/vocab-term";
@@ -12,6 +12,8 @@ import { EllipsisHorizontalIcon } from "@heroicons/react/16/solid";
 import { PencilIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { Button } from "@/components/catalyst-ui/button";
 import { Text } from "@/components/catalyst-ui/text";
+import { TermTuple } from "@/db/types";
+import { TermTupleRows } from "../news/[excerptId]/page";
 
 export function HistoryTable({ video: videoProp }: { video: AnnotatedVideo }) {
     const [video, setVideo] = useState<AnnotatedVideo>(videoProp);
@@ -22,19 +24,11 @@ export function HistoryTable({ video: videoProp }: { video: AnnotatedVideo }) {
 
     async function createTerm(event: React.KeyboardEvent<HTMLInputElement>) {
         handleKeyDown(event, () => {
-            let updatePromise: Promise<SimpleVocabTerm>;
+            let updatePromise: Promise<TermTuple>;
             if (newTerm.english === '') {
-                updatePromise = reverso(newTerm.french, "fr", "en")
-                    .then(res => res['translation'])
-                    .then((translation: string[]) =>
-                        ({ ...newTerm, english: translation[0], misc: newTerm.misc + "(Translated via Reverso)" })
-                    )
-            }  else if (newTerm.french === '') {
-                updatePromise = reverso(newTerm.english, "en", "fr")
-                .then(res => res['translation'])
-                .then((translation: string[]) =>
-                    ({ ...newTerm, french: translation[0], misc: newTerm.misc + "(Translated via Reverso)" })
-                )
+                updatePromise = reverso(newTerm.french, "fr", "en").then(res => toTermTuple(newTerm.french, res))
+            } else if (newTerm.french === '') {
+                updatePromise = reverso(newTerm.english, "en", "fr").then(res => toTermTuple(newTerm.english, res))
             } else {
                 updatePromise = new Promise(() => newTerm); // Self-translated
             }
@@ -48,10 +42,10 @@ export function HistoryTable({ video: videoProp }: { video: AnnotatedVideo }) {
         });
     }
 
-    function removeItem(term: SimpleVocabTerm, videoId: string) {
-        removeTermFromAnnotatedVideo(term,videoId)
-        .then(r => JSON.parse(r))
-        .then((video: AnnotatedVideo) => setVideo(video))
+    function removeItem(term: TermTuple, videoId: string) {
+        removeTermFromAnnotatedVideo(term, videoId)
+            .then(r => JSON.parse(r))
+            .then((video: AnnotatedVideo) => setVideo(video))
     }
 
     return (
@@ -60,7 +54,6 @@ export function HistoryTable({ video: videoProp }: { video: AnnotatedVideo }) {
                 <TableRow>
                     <TableHeader>French</TableHeader>
                     <TableHeader>English</TableHeader>
-                    <TableHeader>Misc</TableHeader>
                     <TableHeader></TableHeader>
                 </TableRow>
             </TableHead>
@@ -77,20 +70,26 @@ export function HistoryTable({ video: videoProp }: { video: AnnotatedVideo }) {
                             </TableCell>);
                     })}
                 </TableRow>
-                {video.terms && video.terms.toReversed().map((term, index) => (
-                    <TableRow key={index}>
-                        <TableCell className="text-right font-medium">{term.french}</TableCell>
-                        <TableCell className="text-right"><Text>{term.english}</Text></TableCell>
-                        <TableCell className="text-zinc-500">{term.misc}</TableCell>
-                        <TableCell>
-                            <div className="flex justify-evenly">
-                                <Button onClick={() => { }}><PencilIcon /></Button>
-                                <Button onClick={() => removeItem(term, video.videoId)}><TrashIcon /></Button>
-                            </div>
-                        </TableCell>
-                    </TableRow>
-                ))}
+                {video.terms && <TermTupleRows
+                    terms={video.terms.toReversed()}
+                    removeAction={(x: TermTuple) => removeItem(x, video.videoId)}
+                    editAction={(x: TermTuple, y: TermTuple) => { }}
+                />}
             </TableBody>
         </Table>
     );
+
+    // && video.terms.toReversed().map((term, index) => (
+    //     <TableRow key={index}>
+    //         <TableCell className="text-right font-medium">{term.french}</TableCell>
+    //         <TableCell className="text-right"><Text>{term.english}</Text></TableCell>
+    //         <TableCell className="text-zinc-500">{term.misc}</TableCell>
+    //         <TableCell>
+    //             <div className="flex justify-evenly">
+    //                 <Button onClick={() => { }}><PencilIcon /></Button>
+    //                 <Button onClick={() => removeItem(term, video.videoId)}><TrashIcon /></Button>
+    //             </div>
+    //         </TableCell>
+    //     </TableRow>
+    // ))}
 }
