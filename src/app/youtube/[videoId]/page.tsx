@@ -1,5 +1,17 @@
 "use client"
 
-export default async function YoutubeNoteTaker({ params }: { params: Promise<{ videoId: string }> }) {
-    return <div>{(await params).videoId}</div>
+import { getAnnotatedVideoAction } from "@/db/actions"
+import { MongoAnnotatedVideo } from "@/db/models/annotated-video"
+import { useEffect, useState } from "react"
+import { VideoNoteTool } from "../page";
+
+export default function YoutubeNoteTaker({ params }: { params: Promise<{ videoId: string }> }) {
+    const [video, setVideo] = useState<MongoAnnotatedVideo>();
+    useEffect(() => {
+        params.then(p => getAnnotatedVideoAction(p.videoId))
+        .then(r => JSON.parse(r))
+        .then((video: MongoAnnotatedVideo) => setVideo(video))
+    }, [])
+    
+    return video ? <VideoNoteTool video={video} /> : "NOT FOUND"
 }

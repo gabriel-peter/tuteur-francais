@@ -58,7 +58,7 @@ export default function YoutubeToolHome() {
                 </InputGroup>
             </Field>
             <br />
-            {video ? <VideoNoteTool video={video} /> : <VideoRecents setUrl={setUrl} videoRecents={videoRecents} />}
+            {!video && <VideoRecents setUrl={setUrl} videoRecents={videoRecents} />}
         </>
     )
 }
@@ -100,7 +100,7 @@ function VideoRecentRow({ setUrl, video }: { setUrl: (x: string) => void, video:
                 setIsOpen={setShowDeleteDialog}
             />
             <TableRow>
-                <TableCell onClick={() => setUrl(`https://www.youtube.com/watch?v=${video.videoId}`)}>
+                <TableCell onClick={() => router.push(`youtube/${video.videoId}`)}>
                     <div className="flex items-center gap-4">
                         <Image
                             src={video.thumbnailUrl}
@@ -138,7 +138,7 @@ function Captions({video} : {video: AnnotatedVideo}) {
     return (<div></div>)
 }
 
-function VideoNoteTool({ video }: { video: AnnotatedVideo }) {
+export function VideoNoteTool({ video }: { video: AnnotatedVideo }) {
     return <>
         <div className="relative w-full h-0"
             style={{ paddingBottom: '56.25%' }} // 16:9 Aspect ratio 

@@ -57,6 +57,13 @@ export async function getAllAnnotatedVideoAction(): Promise<string> {
     return JSON.stringify(resultPromise)
 }
 
+export async function getAnnotatedVideoAction(videoId: string): Promise<string> {
+    await dbConnect();
+    const resultPromise = await AnnotatedVideoModel.findOne({videoId}).lean()
+    console.log(resultPromise)
+    return JSON.stringify(resultPromise)
+}
+
 export async function updateTermToAnnotatedVideo(term: TermTuple, videoId: string) {
     await dbConnect();
     const updatedVideo = await AnnotatedVideoModel.findOneAndUpdate(
@@ -158,11 +165,11 @@ export async function updateTermFromAnnotatedExcerptAction(newTermTuple: TermTup
 
         // Save the updated terms array
         const updatedExcerpt = await AnnotatedExcerptModel.findOneAndUpdate(
-            { id: excerptId },
-            { terms: excerpt.terms },
-            { new: true, overwrite: true }
-        ).lean();
-
+            { _id: excerptId },
+            { $set: { terms: excerpt.terms } }, 
+            { new: true }
+        ).lean().catch(error => console.log(error));
+        console.log("TERM SUCCESSFULLY UPDATED", updatedExcerpt)
         return JSON.stringify(updatedExcerpt);
     } else {
         console.error("No term match to update: ", newTermTuple, oldTermTuple)
