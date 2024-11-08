@@ -1,8 +1,8 @@
 "use client"
 import { Heading } from "@/components/catalyst-ui/heading";
 import { useEffect, useState } from "react";
-import { CardGrid } from "../flashcards/page";
-import { advancedTermTuples, foodTermTuples } from "../../test-data/term-tuples";
+import { CardGrid } from "../../flashcards/page";
+import { advancedTermTuples, foodTermTuples } from "../../../test-data/term-tuples";
 import { Language, Quiz, TermTuple, WordType } from "@/db/types";
 import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/components/catalyst-ui/dialog";
 import { Field, Label } from "@/components/catalyst-ui/fieldset";
@@ -11,7 +11,7 @@ import { Input } from "@/components/catalyst-ui/input";
 import { Text } from '@/components/catalyst-ui/text'
 import { CheckIcon } from "@heroicons/react/24/solid";
 import { ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/20/solid";
-import { idiomTermTuples } from "../../test-data/term-tuples";
+import { idiomTermTuples } from "../../../test-data/term-tuples";
 import { Switch, SwitchField } from "@/components/catalyst-ui/switch";
 import { ChevronDownIcon, EllipsisHorizontalIcon, PlusIcon } from "@heroicons/react/16/solid";
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
@@ -23,7 +23,8 @@ import { Badge } from "@/components/catalyst-ui/badge";
 import { AnnotatedVideo } from "@/db/models/annotated-video";
 import { Select } from "@/components/catalyst-ui/select";
 import { useRouter } from "next/navigation";
-import { RequestState, LoadingButton } from "../../components/LoadingButton";
+import { RequestState, LoadingButton } from "../../../components/LoadingButton";
+import { Navbar, NavbarSection, NavbarItem } from "@/components/catalyst-ui/navbar";
 
 function AIDialogBody() {
     const [requestState, setRequestState] = useState<RequestState>("IDLE")
@@ -302,10 +303,8 @@ export default function FlashCardQuiz() {
         <div>
             <QuizGeneratorDialog isOpen={openQuizGenerator} setIsOpen={setOpenQuizGenerator} />
             {quiz && <QuizPanel quiz={quiz} setQuizShown={() => setQuiz(undefined)} />}
-            <div className="flex w-full flex-wrap items-end justify-between gap-4 border-b border-zinc-950/10 pb-6 dark:border-white/10">
-                <Heading>Quiz</Heading>
-                <div className="flex gap-4">
-                    <SwitchField>
+            <div className="flex w-full flex-wrap items-end justify-between gap-4 pb-6">
+            <SwitchField>
                         <Label>Shuffle</Label>
                         <Switch
                             name="shuffle"
@@ -313,9 +312,6 @@ export default function FlashCardQuiz() {
                             onChange={() => setShuffleEnabled(!shuffleEnabled)}
                         />
                     </SwitchField>
-                </div>
-            </div>
-            <div className="flex w-full flex-wrap items-end justify-between gap-4 pb-6">
                 <CardGrid>
                     {quizzes.map((quiz, index) => {
                         const possibleShuffledQuiz = quiz;
