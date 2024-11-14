@@ -12,6 +12,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.1.5",
     "@typegoose/typegoose": "^12.8.0",
+    "cheerio": "^1.0.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.10",
     "mongoose": "^8.7.3",

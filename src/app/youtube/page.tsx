@@ -16,23 +16,25 @@ import { HistoryTable } from "./HistoryTable";
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
 import { DeleteDialog } from "../../components/DeleteDialog";
 import { useRouter } from "next/navigation";
+import { SearchBar } from "@/components/SearchBar";
 
 
 export default function YoutubeToolHome() {
     const [url, setUrl] = useState<string>();
-    const [video, setVideo] = useState<AnnotatedVideo>();
     const [videoRecents, setVideoRecents] = useState<AnnotatedVideo[]>([])
-    useEffect(() => {
-        if (url === undefined) return;
-        getVideoMetadata(url).then(res => {
+    const router = useRouter()
+
+    function search(url?: string) {
+        if (url === undefined) return new Promise(() => {});
+        return getVideoMetadata(url).then(res => {
             console.log(res);
             return res
         }).then(metadata => createOrFindAnnotatedVideoAction(metadata))
-            .then(res => JSON.parse(res))
-            .then((newVideo: AnnotatedVideo) => setVideo(newVideo))
-            .then(r => console.log("Success new video save: " + r))
-            .catch(e => console.log(e))
-    }, [url, setUrl])
+            .then(JSON.parse)
+            .then((newVideo: AnnotatedVideo) => {console.log("Success new video save: " + newVideo.videoId); return newVideo.videoId})
+            .then(videoId => router.push(`/youtube/${videoId}`))
+            .catch(console.error)
+    }
 
     useEffect(() => {
         getAllAnnotatedVideoAction().then(res => JSON.parse(res))
@@ -41,29 +43,18 @@ export default function YoutubeToolHome() {
     }, [])
     return (
         <>
-            <Field>
-                {/* <Label>Your website</Label> */}
-                <Description>Enter a video URL that you wish to take notes on.</Description>
-                <InputGroup>
-                    <MagnifyingGlassIcon />
-                    <Input
-                        type="url"
-                        name="url"
-                        placeholder="Search&hellip;"
-                        aria-label="Search"
-                        value={url}
-                        onKeyDown={(event) => handleKeyDown(event, () => setUrl(event.currentTarget.value))}
-                        autoFocus
-                    />
-                </InputGroup>
-            </Field>
+            <SearchBar
+            description="Enter a video URL that you wish to take notes on."
+            textValue={url}
+            setTextValue={setUrl}
+            searchAction={()=> search(url)}/>
             <br />
-            {!video && <VideoRecents setUrl={setUrl} videoRecents={videoRecents} />}
+            <VideoRecents videoRecents={videoRecents} />
         </>
     )
 }
 
-function VideoRecents({ videoRecents, setUrl }: { videoRecents: AnnotatedVideo[], setUrl: (x: string) => void }) {
+function VideoRecents({ videoRecents }: { videoRecents: AnnotatedVideo[] }) {
     if (videoRecents.length === 0) {
         return <></>
     }
@@ -80,7 +71,7 @@ function VideoRecents({ videoRecents, setUrl }: { videoRecents: AnnotatedVideo[]
                 </TableHead>
                 <TableBody>
                     {videoRecents.map((video, index) => (
-                        <VideoRecentRow key={index} setUrl={setUrl} video={video} />
+                        <VideoRecentRow key={index} video={video} />
                     ))}
                 </TableBody>
             </Table>
@@ -88,7 +79,7 @@ function VideoRecents({ videoRecents, setUrl }: { videoRecents: AnnotatedVideo[]
     )
 }
 
-function VideoRecentRow({ setUrl, video }: { setUrl: (x: string) => void, video: AnnotatedVideo }) {
+function VideoRecentRow({ video }: { video: AnnotatedVideo }) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const router = useRouter();
     return (

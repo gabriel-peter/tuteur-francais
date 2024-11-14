@@ -1,5 +1,5 @@
 import { Language, TermTuple } from "@/db/types";
-
+// https://github.com/s0ftik3/reverso-api/blob/master/src/reverso.js#L480
 export interface TranslationResponse {
     id: string;
     from: string;

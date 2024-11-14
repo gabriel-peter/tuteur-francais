@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     esmExternals: "loose", // <-- add this
      // <-- and this
   },
+  // crossOrigin: 'anonymous',
   serverExternalPackages: ["mongoose"],
   // and the following to enable top-level await support for Webpack
   webpack: (config) => {
