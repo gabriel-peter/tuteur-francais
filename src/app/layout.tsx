@@ -67,7 +67,7 @@ import { VideoCameraIcon } from "@heroicons/react/20/solid";
 
 const LINKS: { title: string, icon?: React.ReactNode, href: Route }[] = [
   { title: "Flash Cards", href: "/flashcards", icon: <Square2StackIcon /> },
-  { title: "Quiz", href: "/quiz", icon: <PuzzlePieceIcon /> },
+  { title: "Quiz", href: "/quiz/flashcards", icon: <PuzzlePieceIcon /> },
   { title: "Youtube", href: "/youtube", icon: <VideoCameraIcon /> },
   { title: "News", href: "/news", icon: <BookOpenIcon /> }
 

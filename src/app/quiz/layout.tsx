@@ -1,6 +1,6 @@
 "use client"
 import { Navbar, NavbarSection, NavbarItem } from "@/components/catalyst-ui/navbar";
-import PageHeader from "@/components/page-header";
+import PageHeader from "@/components/PageHeader";
 import { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

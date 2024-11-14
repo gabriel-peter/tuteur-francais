@@ -13,5 +13,5 @@ export default function YoutubeNoteTaker({ params }: { params: Promise<{ videoId
         .then((video: MongoAnnotatedVideo) => setVideo(video))
     }, [])
     
-    return video ? <VideoNoteTool video={video} /> : "NOT FOUND"
+    return video ? <VideoNoteTool video={video} setVideo={setVideo} /> : "NOT FOUND"
 }

@@ -1,5 +1,5 @@
 import { TermTuple } from "../types";
-import { TermTupleSchema } from "./quiz/quiz";
+import { TermTupleSchema } from "./TermTupleSchema";
 import { SimpleVocabTerm, SimpleVocabTermSchema } from "./vocab-term";
 import mongoose from "mongoose";
 
@@ -20,4 +20,4 @@ const AnnotatedVideoSchema = new mongoose.Schema<MongoAnnotatedVideo>({
     terms: {type: [TermTupleSchema], required: false, default: []}
 })
 
-export default mongoose.models.AnnotatedVideo || mongoose.model<MongoAnnotatedVideo>("AnnotatedVideo", AnnotatedVideoSchema)
+export default mongoose.models?.AnnotatedVideo || mongoose.model<MongoAnnotatedVideo>("AnnotatedVideo", AnnotatedVideoSchema)

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import RecentAnnotations from "./RecentAnnotations";
 
-const testAnnotatedExcerpt = {title: "Test", content: "Qui sera le prochain occupant de la Maison Blanche ? Outre-Atlantique, cette question que les électeurs américains s’apprêtent à trancher intéresse également les décideurs, qui craignent les potentielles répercussions de cette élection présidentielle américaine très attendue, prévue ce mardi. Les dossiers qui attendent le futur président - allant de la guerre en Ukraine à la lutte contre le réchauffement climatique, en passant par la politique économique - seront scrutés de près. ", terms: [], createdAt: new Date()}
+const emptyAnnotatedExcerpt = {title: "Untitled", content: "", terms: [], createdAt: new Date()}
 export default function Recents() {
     const [excerpts, setExcerpts] = useState<MongoAnnotatedExcerpt[]>([]);
     const router = useRouter()
@@ -14,7 +14,7 @@ export default function Recents() {
         getAllExerptsAction().then(r => JSON.parse(r)).then((excerpts: MongoAnnotatedExcerpt[]) => setExcerpts(excerpts))
     }, [])
     function createNewAnnotatedExcerpt() {
-        createAnnotatedExcerptAction(testAnnotatedExcerpt)
+        createAnnotatedExcerptAction(emptyAnnotatedExcerpt)
         // .then(res => JSON.parse(res)).then((excerpt: MongoAnnotatedExcerpt) => excerpt.id)
         .then(excerptId => router.push(`/news/${excerptId}`))
         .catch(error => console.error(error))

@@ -1,7 +1,7 @@
 "use client"
 import { EllipsisHorizontalIcon, MagnifyingGlassIcon } from "@heroicons/react/16/solid";
 import { Input, InputGroup } from "../../components/catalyst-ui/input";
-import PageHeader from "../../components/page-header";
+import PageHeader from "@/components/PageHeader";
 import { Description, Field, Label } from "../../components/catalyst-ui/fieldset";
 import { useEffect, useState } from "react";
 import { Divider } from "../../components/catalyst-ui/divider";
@@ -11,7 +11,7 @@ import { handleKeyDown } from "../utils";
 import { extractYoutubeId, getCaptions, getVideoMetadata as getVideoMetadata, YoutubeVideoMetadata } from "@/clients/youtube";
 import Image from 'next/image';
 import { upsertAnnotatedVideoAction as createOrFindAnnotatedVideoAction, deleteAnnotatedVideoAction, getAllAnnotatedVideoAction } from "@/db/actions";
-import { AnnotatedVideo } from "@/db/models/annotated-video";
+import { AnnotatedVideo, MongoAnnotatedVideo } from "@/db/models/annotated-video";
 import { HistoryTable } from "./HistoryTable";
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
 import { DeleteDialog } from "../../components/DeleteDialog";
@@ -138,7 +138,7 @@ function Captions({video} : {video: AnnotatedVideo}) {
     return (<div></div>)
 }
 
-export function VideoNoteTool({ video }: { video: AnnotatedVideo }) {
+export function VideoNoteTool({ video, setVideo }: { video: AnnotatedVideo, setVideo: (x: MongoAnnotatedVideo) => void }) {
     return <>
         <div className="relative w-full h-0"
             style={{ paddingBottom: '56.25%' }} // 16:9 Aspect ratio 
@@ -154,7 +154,7 @@ export function VideoNoteTool({ video }: { video: AnnotatedVideo }) {
         </div>
         <Divider />
         <Heading>Notes - «{video.title}»</Heading>
-        <HistoryTable video={video} />
+        <HistoryTable video={video} setVideo={setVideo} />
         <Captions video={video} />
     </>;
 }

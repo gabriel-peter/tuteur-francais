@@ -2,10 +2,12 @@
 import { Quiz, TermTuple } from "./types";
 import dbConnect from "./mongoose";
 import SimpleVocabTermModel, { SimpleVocabTerm } from "@/db/models/vocab-term"
-import AnnotatedVideoModel, { AnnotatedVideo } from "@/db/models/annotated-video"
-import QuizSchema, { MongoTermTuple } from "@/db/models/quiz/quiz"
+import AnnotatedVideoModel, { AnnotatedVideo, MongoAnnotatedVideo } from "@/db/models/annotated-video"
+import QuizModel from "@/db/models/quiz"
+import { MongoTermTuple } from "./models/TermTupleSchema";
 import { YoutubeVideoMetadata } from "@/clients/youtube";
 import AnnotatedExcerptModel, { AnnotatedExcerpt, MongoAnnotatedExcerpt } from "./models/excerpt";
+import mongoose, { Model } from "mongoose";
 
 export async function createFlashCardAction(term: SimpleVocabTerm) {
     await dbConnect();
@@ -21,12 +23,12 @@ export async function getFlashCardAction(term: SimpleVocabTerm) {
 
 export async function createQuizAction(quiz: Quiz) {
     await dbConnect();
-    return QuizSchema.create(quiz).then(r => r.id)
+    return QuizModel.create(quiz).then(r => r.id)
 }
 
 export async function getAllQuizsAction(): Promise<string> {
     await dbConnect();
-    const resultPromise = await QuizSchema.find().lean()
+    const resultPromise = await QuizModel.find().lean()
     console.log(resultPromise)
     return JSON.stringify(resultPromise)
 }
@@ -122,7 +124,7 @@ export async function getAllExerptsAction(): Promise<any> {
 export async function updateTermToAnnotatedExcertAction(term: TermTuple, excerptId: string) {
     await dbConnect();
     const updated = await AnnotatedExcerptModel.findOneAndUpdate(
-        { id: excerptId },
+        { _id: excerptId },
         { $push: { terms: term } },
         { new: true } // This option returns the updated document
     ).lean().catch(error => console.error(error))
@@ -166,6 +168,68 @@ export async function updateTermFromAnnotatedExcerptAction(newTermTuple: TermTup
         // Save the updated terms array
         const updatedExcerpt = await AnnotatedExcerptModel.findOneAndUpdate(
             { _id: excerptId },
+            { $set: { terms: excerpt.terms } }, 
+            { new: true }
+        ).lean().catch(error => console.log(error));
+        console.log("TERM SUCCESSFULLY UPDATED", updatedExcerpt)
+        return JSON.stringify(updatedExcerpt);
+    } else {
+        console.error("No term match to update: ", newTermTuple, oldTermTuple)
+        return null; // No matching term found
+    }
+}
+
+const modelMap = {
+    "AnnotatedExcerpt": AnnotatedExcerptModel,
+    "AnnotatedVideo": AnnotatedVideoModel,
+    "Quiz": QuizModel,
+}
+
+type ModelMapKey = keyof typeof modelMap
+
+// Generic function to update a full object in Mongoose
+export async function updateDocumentById<T extends mongoose.Document>(
+    modelMapKey: ModelMapKey,         // The Mongoose model (e.g., UserModel, ProductModel)
+    id: string,               // The ID of the document to update
+    updatedData: Partial<T>   // The updated object data (partial to allow partial updates), ensures _id is not mutated
+): Promise<string> {
+    delete updatedData._id
+    await dbConnect()
+    try {
+        const updatedDocument = await modelMap[modelMapKey].findOneAndUpdate(
+            { _id: id },
+            updatedData,
+            { new: true } // `new: true` to return the updated doc, `overwrite: true` to replace
+        ).lean(); // Use `.lean()` if you want a plain JavaScript object instead of a Mongoose document
+        console.log("UPDATED DOCUMENT", updatedDocument)
+        return JSON.stringify(updatedDocument);
+    } catch (error) {
+        console.error('Error updating document:', error);
+        throw error;
+    }
+}
+
+export async function updateTermFromAnnotatedVideoAction(newTermTuple: TermTuple, oldTermTuple: TermTuple, videoId: string) {
+    await dbConnect();
+
+    // First, find the document to get the existing terms array
+    const excerpt: MongoAnnotatedVideo | null = await AnnotatedVideoModel.findOne({videoId});
+    if (!excerpt) {
+        console.warn("No excerpt found during update: ", videoId)
+        return null;
+    }
+    // Find the index of the term to update based on full match
+    const termIndex = excerpt.terms.findIndex(term =>
+        JSON.stringify(term) === JSON.stringify(oldTermTuple)
+    );
+
+    if (termIndex !== -1) {
+        // Update the term at the found index
+        excerpt.terms[termIndex] = newTermTuple;
+
+        // Save the updated terms array
+        const updatedExcerpt = await AnnotatedVideoModel.findOneAndUpdate(
+            { videoId },
             { $set: { terms: excerpt.terms } }, 
             { new: true }
         ).lean().catch(error => console.log(error));

@@ -1,7 +1,8 @@
 "use client"
-import PageHeader from "@/components/page-header";
+import PageHeader from "@/components/PageHeader";
 import { Text } from "@/components/catalyst-ui/text";
 
+import * as Headless from '@headlessui/react'
 import React, { useState, useRef, useEffect, Fragment, ReactElement } from "react";
 import { Dropdown, DropdownMenu, DropdownItem, DropdownShortcut, DropdownLabel, DropdownButton } from "@/components/catalyst-ui/dropdown";
 import { Menu, MenuButton } from "@headlessui/react";
@@ -10,25 +11,29 @@ import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@
 import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
 import AnnotatedExcerptModel, { AnnotatedExcerpt, MongoAnnotatedExcerpt } from "@/db/models/excerpt";
 import { TextWithActions } from "@/components/TextWithActions";
-import { getExerptAction, removeTermFromAnnotatedExcerpt, updateTermFromAnnotatedExcerptAction, updateTermToAnnotatedExcertAction } from "@/db/actions";
+import { getExerptAction, removeTermFromAnnotatedExcerpt, updateDocumentById, updateTermFromAnnotatedExcerptAction, updateTermToAnnotatedExcertAction } from "@/db/actions";
 import { reverso, toTermTuple, TranslationResponse } from "@/clients/reverso";
 import { Language, Term, TermTuple } from "@/db/types";
-import { MongoTermTuple } from "@/db/models/quiz/quiz";
-import { Input } from "@/components/catalyst-ui/input";
+import { MongoTermTuple } from "@/db/models/TermTupleSchema";
 import { Listbox, ListboxLabel, ListboxOption } from "@/components/catalyst-ui/listbox";
-import { Field } from "@/components/catalyst-ui/fieldset";
+import { Description, Field, Label } from "@/components/catalyst-ui/fieldset";
 import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/components/catalyst-ui/dialog";
 import { DescriptionList, DescriptionTerm, DescriptionDetails } from "@/components/catalyst-ui/description-list";
 import { Button } from "@/components/catalyst-ui/button";
+import { handleKeyDown } from "@/app/utils";
+import { SaveableTextArea } from "../../../components/SaveableTextArea";
+import { EditablePageHeader } from "../../../components/EditablePageHeader";
 
 export default function NewsTool({ params }: { params: Promise<{ excerptId: string }> }) {
     const [excerpt, setExcerpt] = useState<MongoAnnotatedExcerpt>();
+    const [excerptId, setExcerptId] = useState<string>();
     useEffect(() => { // Load Excerpt by Id
         params.then(params => {
             console.log("Loading Excerpt: ", params.excerptId)
+            setExcerptId(params.excerptId)
             return getExerptAction(params.excerptId)
         })
-            .then(res => JSON.parse(res)).then((excerpt: MongoAnnotatedExcerpt) => setExcerpt(excerpt))
+            .then(JSON.parse).then((excerpt: MongoAnnotatedExcerpt) => setExcerpt(excerpt))
     }, [])
     const saveNewTerm = (selectedText: string, excerptId: string) => {
         // navigator.clipboard.writeText(selectedText);
@@ -36,49 +41,58 @@ export default function NewsTool({ params }: { params: Promise<{ excerptId: stri
         // return new Promise(() => { });
         return reverso(selectedText, "fr", "en")
             .then(response => toTermTuple(selectedText, response)).then(term => updateTermToAnnotatedExcertAction(term, excerptId))
-            .then(res => JSON.parse(res))
+            .then(JSON.parse)
             .then(updatedExcerpt => setExcerpt(updatedExcerpt))
             .catch(error => console.error(error))
     };
+
+    function updateContent(newContent: string): Promise<void> {
+        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerpt?._id , {...excerpt, content: newContent})
+        .then(JSON.parse)
+        .then(setExcerpt)
+    }
+
+    function updateTitle(newTitle: string): Promise<void> {
+        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerpt?._id , {...excerpt, title: newTitle})
+        .then(JSON.parse)
+        .then(setExcerpt)
+    }
 
     // Example placeholder function for translation
     const translateText = (selectedText: string) => {
         alert(`Translate: ${selectedText}`);
         return new Promise(() => { });
     };
-    return (<PageHeader title="News">
-        {excerpt ? (
+    return excerpt ? (
+            <EditablePageHeader title={excerpt.title} saveTitle={updateTitle}>
             <>
                 <TextWithActions
                     highlightActions={
                         (selectedText: string, closeMenu: () => void) => (
                             <>
-                                <DropdownItem onClick={() => saveNewTerm(selectedText, excerpt.id).then(closeMenu)}>
+                                <DropdownItem onClick={() => saveNewTerm(selectedText, excerpt._id).then(closeMenu)}>
                                     <DropdownShortcut keys="⌘S" />
                                     <DropdownLabel>Save</DropdownLabel>
                                 </DropdownItem>
-                                <DropdownItem onClick={() => translateText(selectedText, excerpt.id).then(closeMenu)}>
+                                <DropdownItem onClick={() => translateText(selectedText, excerpt._id).then(closeMenu)}>
                                     <DropdownLabel>Quick Translate</DropdownLabel>
                                     <DropdownShortcut keys="⌘T" />
                                 </DropdownItem>
-                                <DropdownItem onClick={() => translateText(selectedText, excerpt.id).then(closeMenu)}>
+                                <DropdownItem onClick={() => translateText(selectedText, excerpt._id).then(closeMenu)}>
                                     <DropdownLabel>Speak</DropdownLabel>
                                     {/* <DropdownShortcut keys="⌘T" /> */}
                                 </DropdownItem>
                             </>)
                     }
                     body={
-                        <Text>
-                            {excerpt.content}
-                        </Text>
+                        <SaveableTextArea text={excerpt.content} saveText={updateContent} />
                     }
                 />
                 <SavedTerms excerpt={excerpt} setExcerpt={setExcerpt} />
             </>
+            </EditablePageHeader>
         ) :
             <div>Loading ...</div>
-        }
-    </PageHeader>)
 }
 
 function SavedTerms({ excerpt, setExcerpt }: { excerpt: MongoAnnotatedExcerpt, setExcerpt: (x: MongoAnnotatedExcerpt) => void }) {
@@ -162,7 +176,7 @@ const TermReselectListbox = ({ term, editTermAction }: { term: Term, editTermAct
 
     // Detects change in state made by Listbox and causes full object change in parent.
     useEffect(() => {
-        if (term.word === translationValue) return 
+        if (term.word === translationValue) return
         editTermAction({ ...term, word: translationValue })
     }, [translationValue])
     if (!term.otherPossibilies || term.otherPossibilies.length === 0) {

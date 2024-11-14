@@ -5,8 +5,8 @@ import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@
 import { SimpleVocabTerm } from "@/db/models/vocab-term";
 import { useState } from "react";
 import { handleKeyDown } from "../utils";
-import AnnotatedVideoModel, { AnnotatedVideo } from "@/db/models/annotated-video";
-import { removeTermFromAnnotatedVideo, updateTermToAnnotatedVideo } from "@/db/actions";
+import AnnotatedVideoModel, { AnnotatedVideo, MongoAnnotatedVideo } from "@/db/models/annotated-video";
+import { removeTermFromAnnotatedVideo, updateTermFromAnnotatedVideoAction, updateTermToAnnotatedVideo } from "@/db/actions";
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
 import { EllipsisHorizontalIcon } from "@heroicons/react/16/solid";
 import { PencilIcon, TrashIcon } from "@heroicons/react/16/solid";
@@ -15,8 +15,11 @@ import { Text } from "@/components/catalyst-ui/text";
 import { TermTuple } from "@/db/types";
 import { TermTupleRows } from "../news/[excerptId]/page";
 
-export function HistoryTable({ video: videoProp }: { video: AnnotatedVideo }) {
+export function HistoryTable({ video: videoProp, setVideo: updateVideo }: { video: AnnotatedVideo, setVideo: (x: MongoAnnotatedVideo) => void }) {
     const [video, setVideo] = useState<AnnotatedVideo>(videoProp);
+    function editAction(newTermTuple: TermTuple, oldTermTuple: TermTuple) {
+        updateTermFromAnnotatedVideoAction(newTermTuple, oldTermTuple, video.videoId).then(JSON.parse).then(updateVideo)
+    } 
     const emptyTerm = { french: '', english: '', misc: '' };
     type VocabTermFields = keyof SimpleVocabTerm;
     const vocabTermFields: VocabTermFields[] = ["french", "english", "misc"];
@@ -73,7 +76,7 @@ export function HistoryTable({ video: videoProp }: { video: AnnotatedVideo }) {
                 {video.terms && <TermTupleRows
                     terms={video.terms.toReversed()}
                     removeAction={(x: TermTuple) => removeItem(x, video.videoId)}
-                    editAction={(x: TermTuple, y: TermTuple) => { }}
+                    editAction={editAction}
                 />}
             </TableBody>
         </Table>
