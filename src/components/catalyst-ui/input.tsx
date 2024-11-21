@@ -49,6 +49,7 @@ export const Input = forwardRef(function Input(
         'has-[[data-disabled]]:opacity-50 before:has-[[data-disabled]]:bg-zinc-950/5 before:has-[[data-disabled]]:shadow-none',
         // Invalid state
         'before:has-[[data-invalid]]:shadow-red-500/10',
+        'before:has-[[data-correct]]:shadow-green-500/10',
       ])}
     >
       <Headless.Input

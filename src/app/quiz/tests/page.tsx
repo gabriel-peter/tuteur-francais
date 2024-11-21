@@ -40,16 +40,14 @@ export default function Tests() {
 }
 
 // Helper function to mimic Map.get
-function safeGet<T, K extends keyof T>(record: T, key: K): T[K] | undefined {
-    return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
-}
-
-
+// function safeGet<T, K extends keyof T>(record: T, key: K): T[K] | undefined {
+//     return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+// }  
 
 function sentenceWithInputs(testSentence: { sentence: string; hints: string[]; answers: string[]; }) {
     const [guesses, setGuesses] = useState<string[]>(Array(testSentence.answers.length).fill(null));
     const [answerState, setAnswerState] = useState<"UNANSWERED" | "INCORRECT" | "CORRECT">("UNANSWERED");
-    const [errors, setErrors] = useState<Record<number, string>>({0: "Geki"})
+    const [errors, setErrors] = useState<Record<number, string>>(Array(testSentence.answers.length).fill(undefined))
     const updateItemAtIndex = (index: number, newValue: string) => {
         setGuesses((prevItems) => {
             const updatedItems = [...prevItems];  // Make a copy of the array
@@ -59,7 +57,18 @@ function sentenceWithInputs(testSentence: { sentence: string; hints: string[]; a
         console.log(guesses)
     }
     function checkInputs(guesses: string[], answers: string[]) {
-        return guesses.map((guess, index) => guess.trim() === answers[index]);
+        const errors = guesses.map((guess, index) => guess.trim() === answers[index]);
+        let correctionRecord = {} as Record<number, string>;
+        correctionRecord = errors.reduce((record, value, index, x) => {
+            if (!value) { record[index] = answers[index]; return record }
+        }, {} as Record<number, string>)
+        console.log(errors, correctionRecord)
+        setErrors(correctionRecord)
+        if (errors.every(x => x)) {
+            setAnswerState("CORRECT")
+        } else {
+            setAnswerState("INCORRECT")
+        }
     }
     switch (answerState) {
         case "UNANSWERED":
@@ -68,30 +77,45 @@ function sentenceWithInputs(testSentence: { sentence: string; hints: string[]; a
     }
     return (
         <>
-            <Headless.Field className="flex flex-wrap w-auto inline items-center gap-y-6">
+            <Headless.Field className="flex flex-wrap w-auto inline items-center pt-5 gap-y-6">
                 {testSentence.sentence.split(/\{(\d+)\}/g).map((match, index) => {
                     let placeholderIndex: number;
 
                     if (!isNaN(placeholderIndex = parseInt(match, 10))) {
-                        let errorMessage = safeGet(errors, placeholderIndex)
-                        return <Field><Input
+                        let errorMessage = errors[placeholderIndex] || undefined;
+                        return <Field
+                        className="pl-5 inline w-auto"
+                        ><Input
                             key={placeholderIndex}
-                            className="pl-5 
-                         inline w-auto"
+                            className=""
                             type="text"
                             value={guesses[placeholderIndex]}
                             invalid={errorMessage ? true : false}
+                            // correct=
                             onChange={(event) => updateItemAtIndex(placeholderIndex, event.currentTarget.value)}
                             placeholder={testSentence.hints[placeholderIndex]} />
                             {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
                         </Field>;
                     }
-                    // TODO regex on punctuation and change styling.
+                    const splitRegexWithCapturing = /([\s.,!?;:'"(){}\[\]<>\-—_…“”‘’`~@#$%^&*+=|\\\/]+)/;
+                    const punctuationRegex = /[.,!?;:'"(){}\[\]<>\-—_…“”‘’`~@#$%^&*+=|\\\/]/g;
+
+                    // const wordsAndPunctuation = match
+                    //   .split(splitRegexWithCapturing)
+                    //   .filter(item => item.trim() !== '');
+                    //   return wordsAndPunctuation.map((word) => {
+                    //     console.log(word)
+                    //     if (word.match(punctuationRegex) !== null) {
+                    //         return <Text className='inline'>{word}</Text>
+                    //     } else {
+                    //         return <Text className='inline'>{word.padEnd(1)}</Text>
+                    //     }
+                    //   })
                     return <Text className="pl-5 inline">{match}</Text>
                 })}
             </Headless.Field>
             {
-                guesses.every(value => value !== null) && <Button onSubmit={() => checkInputs(guesses, testSentence.answers)}>Submit</Button>
+                guesses.every(value => value !== null) && <Button onClick={() => checkInputs(guesses, testSentence.answers)}>Submit</Button>
             }
         </>
     );

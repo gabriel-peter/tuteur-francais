@@ -1,5 +1,6 @@
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/catalyst-ui/table";
 import { AnnotatedExcerpt, MongoAnnotatedExcerpt } from "@/db/models/excerpt";
+import { timeFormatter } from "@/app/utils";
 
 /***
  * Data fetch strategy:
@@ -20,9 +21,9 @@ export default function RecentAnnotations({excerpts}: {excerpts: MongoAnnotatedE
         </TableHead>
         <TableBody>
           {excerpts.map((excerpt, index) => (
-            <TableRow href={`/news/${excerpt._id}`} key={index}>
+            <TableRow href={`/reading/${excerpt._id}`} key={index}>
               <TableCell className="font-medium">{excerpt.title}</TableCell>
-              <TableCell>{excerpt.createdAt}</TableCell>
+              <TableCell>{timeFormatter.format(new Date(excerpt.createdAt))}</TableCell>
               <TableCell className="text-zinc-500">{excerpt.terms.length}</TableCell>
             </TableRow>
           ))}

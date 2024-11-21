@@ -19,20 +19,19 @@ const TermTupleSchema: z.ZodType<TermTuple> = z.object({
     secondTerm: TermSchema,
 });
 
-const TermTupleListSchema: z.ZodType<{termTuples: TermTuple[]}> =  z.object({
+const TermTupleListSchema: z.ZodType<{ termTuples: TermTuple[] }> = z.object({
     termTuples: z.array(TermTupleSchema)
 });
 
-export async function callWithPrompt(partialPrompt: string): Promise<TermTuple[]>  {
+export async function callWithPrompt(partialPrompt: string, count: number = 20): Promise<TermTuple[]> {
     const completion = await openai.beta.chat.completions.parse({
         model: "gpt-4o-mini",
         messages: [
-            { role: "system", content: "You are a flashcard generating assistant. Create 20 Term Tuples of French to English translations." },
+            { role: "system", content: `You are a flashcard generating assistant. Create ${count} Term Tuples of French to English translations.` },
             {
                 role: "user",
                 content: partialPrompt,
             },
-
         ],
         response_format: zodResponseFormat(TermTupleListSchema, "term_tuple_list"),
     });

@@ -15,8 +15,14 @@ export function TextWithActions(
         const selectedText = window?.getSelection()?.toString().trim();
         if (selectedText) {
             const { clientX: x, clientY: y } = event;
+            
+             // Adjust clientY by adding the current vertical scroll position (window.scrollY)
+            const adjustedY = y + window.scrollY;
+            const adjustedX = x + window.scrollX;
+
+            console.log({ clientX: adjustedX, clientY: adjustedY })
             setSelectedText(selectedText);
-            setMenuPosition({ x, y });
+            setMenuPosition({ x: adjustedX, y: adjustedY });
             setShowMenu(true);
         } else {
             setShowMenu(false);

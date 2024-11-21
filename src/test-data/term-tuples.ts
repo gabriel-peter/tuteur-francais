@@ -1,4 +1,4 @@
-import { TermTuple, WordType } from "@/db/types";
+import { Quiz, TermTuple, WordType } from "@/db/types";
 import { Language } from "@/db/types";
 
 export const idiomTermTuples: TermTuple[] = [
@@ -413,5 +413,10 @@ export const foodTermTuples = [
             examples: ["Seasoning is crucial for a good dish.", "She uses homemade seasoning."]
         }
     }
+];
+export const defaultQuizzes: Quiz[] = [
+    { title: "Quiz 1", items: advancedTermTuples, state: "COMPLETED" },
+    { title: "Food 1", items: foodTermTuples, state: "FAILED" },
+    { title: "Idioms - Reverso Context", items: idiomTermTuples, state: "NEW" }
 ];
   

@@ -13,7 +13,7 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { Button } from "@/components/catalyst-ui/button";
 import { Text } from "@/components/catalyst-ui/text";
 import { TermTuple } from "@/db/types";
-import { TermTupleRows } from "../news/[excerptId]/page";
+import { TermTupleRows } from "../reading/[excerptId]/page";
 
 export function HistoryTable({ video: videoProp, setVideo: updateVideo }: { video: AnnotatedVideo, setVideo: (x: MongoAnnotatedVideo) => void }) {
     const [video, setVideo] = useState<AnnotatedVideo>(videoProp);

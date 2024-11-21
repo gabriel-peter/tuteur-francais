@@ -24,7 +24,7 @@ import { handleKeyDown } from "@/app/utils";
 import { SaveableTextArea } from "../../../components/SaveableTextArea";
 import { EditablePageHeader } from "../../../components/EditablePageHeader";
 
-export default function NewsTool({ params }: { params: Promise<{ excerptId: string }> }) {
+export default function ReadingTool({ params }: { params: Promise<{ excerptId: string }> }) {
     const [excerpt, setExcerpt] = useState<MongoAnnotatedExcerpt>();
     const [excerptId, setExcerptId] = useState<string>();
     useEffect(() => { // Load Excerpt by Id
@@ -47,15 +47,15 @@ export default function NewsTool({ params }: { params: Promise<{ excerptId: stri
     };
 
     function updateContent(newContent: string): Promise<void> {
-        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerpt?._id , {...excerpt, content: newContent})
-        .then(JSON.parse)
-        .then(setExcerpt)
+        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerpt?._id, { ...excerpt, content: newContent })
+            .then(JSON.parse)
+            .then(setExcerpt)
     }
 
     function updateTitle(newTitle: string): Promise<void> {
-        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerpt?._id , {...excerpt, title: newTitle})
-        .then(JSON.parse)
-        .then(setExcerpt)
+        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerpt?._id, { ...excerpt, title: newTitle })
+            .then(JSON.parse)
+            .then(setExcerpt)
     }
 
     // Example placeholder function for translation
@@ -64,48 +64,55 @@ export default function NewsTool({ params }: { params: Promise<{ excerptId: stri
         return new Promise(() => { });
     };
     return excerpt ? (
+        <>
             <EditablePageHeader title={excerpt.title} saveTitle={updateTitle}>
-            <>
-                <TextWithActions
-                    highlightActions={
-                        (selectedText: string, closeMenu: () => void) => (
-                            <>
-                                <DropdownItem onClick={() => saveNewTerm(selectedText, excerpt._id).then(closeMenu)}>
-                                    <DropdownShortcut keys="⌘S" />
-                                    <DropdownLabel>Save</DropdownLabel>
-                                </DropdownItem>
-                                <DropdownItem onClick={() => translateText(selectedText, excerpt._id).then(closeMenu)}>
-                                    <DropdownLabel>Quick Translate</DropdownLabel>
-                                    <DropdownShortcut keys="⌘T" />
-                                </DropdownItem>
-                                <DropdownItem onClick={() => translateText(selectedText, excerpt._id).then(closeMenu)}>
-                                    <DropdownLabel>Speak</DropdownLabel>
-                                    {/* <DropdownShortcut keys="⌘T" /> */}
-                                </DropdownItem>
-                            </>)
-                    }
-                    body={
-                        <SaveableTextArea text={excerpt.content} saveText={updateContent} />
-                    }
-                />
-                <SavedTerms excerpt={excerpt} setExcerpt={setExcerpt} />
-            </>
+                <>
+                    <TextWithActions
+                        highlightActions={
+                            (selectedText: string, closeMenu: () => void) => (
+                                <>
+                                    <DropdownItem onClick={() => saveNewTerm(selectedText, excerpt._id).then(closeMenu)}>
+                                        <DropdownShortcut keys="⌘S" />
+                                        <DropdownLabel>Save</DropdownLabel>
+                                    </DropdownItem>
+                                    <DropdownItem onClick={() => translateText(selectedText, excerpt._id).then(closeMenu)}>
+                                        <DropdownLabel>Quick Translate</DropdownLabel>
+                                        <DropdownShortcut keys="⌘T" />
+                                    </DropdownItem>
+                                    <DropdownItem onClick={() => translateText(selectedText, excerpt._id).then(closeMenu)}>
+                                        <DropdownLabel>Speak</DropdownLabel>
+                                        {/* <DropdownShortcut keys="⌘T" /> */}
+                                    </DropdownItem>
+                                </>)
+                        }
+                        body={
+                            <SaveableTextArea
+                                text={excerpt.content}
+                                saveText={updateContent}
+                            />
+                        }
+                    />
+                </>
             </EditablePageHeader>
-        ) :
-            <div>Loading ...</div>
+            {/* <div className="fixed rounded bottom-0 w-auto h-1/3 p-4 overflow-x-hidden overflow-y-scroll bg-gray-800 shadow-lg z-100"> */}
+                <SavedTerms excerpt={excerpt} setExcerpt={setExcerpt} />
+            {/* </div> */}
+        </>
+    ) :
+        <div>Loading ...</div>
 }
 
 function SavedTerms({ excerpt, setExcerpt }: { excerpt: MongoAnnotatedExcerpt, setExcerpt: (x: MongoAnnotatedExcerpt) => void }) {
     function removeItem(term: TermTuple) {
-        removeTermFromAnnotatedExcerpt(term, excerpt.id).then(res => JSON.parse(res)).then((updated: MongoAnnotatedExcerpt) => setExcerpt(updated))
+        removeTermFromAnnotatedExcerpt(term, excerpt._id).then(res => JSON.parse(res)).then((updated: MongoAnnotatedExcerpt) => setExcerpt(updated))
     }
 
     function editItem(newTermTuple: TermTuple, oldTermTuple: TermTuple): void {
         console.log("HIT")
-        updateTermFromAnnotatedExcerptAction(newTermTuple, oldTermTuple, excerpt._id).then(res => JSON.parse(res)).then((updated: MongoAnnotatedExcerpt) => setExcerpt(updated))
+        updateTermFromAnnotatedExcerptAction(newTermTuple, oldTermTuple, excerpt._id).then(JSON.parse).then((updated: MongoAnnotatedExcerpt) => setExcerpt(updated))
     }
 
-    return <Table>
+    return <Table className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
         <TableHead>
             <TableRow>
                 <TableHeader>French</TableHeader>
@@ -114,11 +121,11 @@ function SavedTerms({ excerpt, setExcerpt }: { excerpt: MongoAnnotatedExcerpt, s
             </TableRow>
         </TableHead>
         <TableBody>
-            <TermTupleRows
+            {excerpt.terms.length ? (<TermTupleRows
                 terms={excerpt.terms}
                 removeAction={removeItem}
                 editAction={editItem}
-            />
+            />) : "No terms have been saved"}
         </TableBody>
     </Table>
 }
@@ -224,7 +231,7 @@ export function TermTupleRows({
                                         }
                                     } />
                                 </TableCell>
-                                <TableCell>{term.firstTerm.type}</TableCell>
+                                {/* <TableCell>{term.firstTerm.type}</TableCell> */}
                                 <TableCell className="text-zinc-500">
                                     <div className="-mx-3 -my-1.5 sm:-mx-2.5">
                                         <Dropdown>

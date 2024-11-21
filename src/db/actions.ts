@@ -23,7 +23,7 @@ export async function getFlashCardAction(term: SimpleVocabTerm) {
 
 export async function createQuizAction(quiz: Quiz) {
     await dbConnect();
-    return QuizModel.create(quiz).then(r => r.id)
+    return QuizModel.create(quiz).then(r => r._id)
 }
 
 export async function getAllQuizsAction(): Promise<string> {
@@ -55,6 +55,20 @@ export async function upsertAnnotatedVideoAction(metadata: YoutubeVideoMetadata)
 export async function getAllAnnotatedVideoAction(): Promise<string> {
     await dbConnect();
     const resultPromise = await AnnotatedVideoModel.find().lean()
+    console.log(resultPromise)
+    return JSON.stringify(resultPromise)
+}
+
+export async function getAllAnnotatedExcerptAction(): Promise<string> {
+    await dbConnect();
+    const resultPromise = await AnnotatedExcerptModel.find().lean()
+    console.log(resultPromise)
+    return JSON.stringify(resultPromise)
+}
+
+export async function getAllItemAction(modelMapKey: ModelMapKey, limit: number = 20): Promise<string> {
+    await dbConnect();
+    const resultPromise = await modelMap[modelMapKey].find().limit(limit).lean()
     console.log(resultPromise)
     return JSON.stringify(resultPromise)
 }
@@ -104,7 +118,7 @@ export async function createAnnotatedExcerptAction(newAnnotatedExcerpt: Annotate
     await dbConnect();
     const newExcerpt = await AnnotatedExcerptModel.create(newAnnotatedExcerpt)
     console.log(newExcerpt)
-    return newExcerpt.id;
+    return newExcerpt._id;
 }
 
 export async function getExerptAction(excerptId: string): Promise<any> {
@@ -136,7 +150,7 @@ export async function removeTermFromAnnotatedExcerpt(termToRemove: TermTuple, ex
     await dbConnect();
     console.log(termToRemove)
     const excerpt = await AnnotatedExcerptModel.findOneAndUpdate(
-        { id: excerptId },
+        { _id: excerptId },
         {
             $pull: {
                 terms: termToRemove
