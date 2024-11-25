@@ -29,7 +29,7 @@ export default function RecentAnnotations({ excerpts }: { excerpts: MongoAnnotat
     </TableHead>
     <TableBody>
       {excerpts.map((excerpt, index) => (
-       <RecentAnnotationRow excerpt={excerpt} key={index} />
+       <RecentAnnotationRow excerpt={excerpt} key={excerpt._id} />
       ))}
     </TableBody>
   </Table>)

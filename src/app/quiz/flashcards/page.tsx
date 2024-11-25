@@ -2,7 +2,7 @@
 import { Heading } from "@/components/catalyst-ui/heading";
 import { useEffect, useState } from "react";
 import { CardGrid } from "../../flashcards/page";
-import { advancedTermTuples, defaultQuizzes } from "../../../test-data/term-tuples";
+import { advancedTermTuples } from "../../../test-data/term-tuples";
 import { Language, Quiz, TermTuple, WordType } from "@/db/types";
 import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/components/catalyst-ui/dialog";
 import { Field, Label } from "@/components/catalyst-ui/fieldset";
@@ -26,6 +26,7 @@ import { QuizCard } from "./QuizCard";
 import { QuizPanel } from "./(game)/QuizGame";
 import { VideoSourceDialogBody } from "./(creation)/VideoSourceDialogBody";
 import { ManualDialogBody } from "./(creation)/ManualDialogBody";
+import { MongoQuiz } from "@/db/models/quiz/quiz";
 
 function AIDialogBody() {
     const [requestState, setRequestState] = useState<RequestState>("IDLE")
@@ -168,14 +169,14 @@ function shuffle(array: TermTuple[]) {
 }
 
 export default function FlashCardQuizHome() {
-    const [quiz, setQuiz] = useState<Quiz>();
+    const [quiz, setQuiz] = useState<MongoQuiz>();
     const [openQuizGenerator, setOpenQuizGenerator] = useState(false);
     const [shuffleEnabled, setShuffleEnabled] = useState(true)
-    const [quizzes, setQuizzes] = useState<Quiz[]>(defaultQuizzes)
+    const [quizzes, setQuizzes] = useState<MongoQuiz[]>([])
     useEffect(() => {
         getAllQuizsAction()
             .then(r => JSON.parse(r))
-            .then((customQuizzes: Quiz[]) => setQuizzes(prevQuizzes => [...prevQuizzes, ...customQuizzes]))
+            .then((customQuizzes: MongoQuiz[]) => setQuizzes(prevQuizzes => [...prevQuizzes, ...customQuizzes]))
     }, [])
     return (
         <div>

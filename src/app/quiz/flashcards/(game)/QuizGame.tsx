@@ -189,7 +189,7 @@ export function QuizPanel({
     )
 }
 
-// A button ref is needed for the autofocus and quick proceed to work, idk why
+// A button ref is needed for the autofocus and quick-proceed to work, idk why
 function KeydownButton({ color, outline, plain, className, children, action, ...props }: ButtonProps & { action: () => void }) {
     // Create a reference to the button
     const buttonRef = useRef<HTMLButtonElement>(null);

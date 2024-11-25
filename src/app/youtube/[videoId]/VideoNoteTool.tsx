@@ -5,8 +5,8 @@ import { AnnotatedVideo, MongoAnnotatedVideo } from "@/db/models/annotated-video
 import { TermTupleManager } from "./TermTupleManager";
 import { Captions } from "./Captions";
 
-
-export function VideoNoteTool({ video, setVideo }: { video: AnnotatedVideo; setVideo: (x: MongoAnnotatedVideo) => void; }) {
+// TODO read https://github.com/vercel/next.js/tree/canary/examples/with-youtube-embed
+export function VideoNoteTool({ video, setVideo }: { video: MongoAnnotatedVideo; setVideo: (x: MongoAnnotatedVideo) => void; }) {
     return <>
         <div className="relative w-full h-0"
             style={{ paddingBottom: '56.25%' }} // 16:9 Aspect ratio 

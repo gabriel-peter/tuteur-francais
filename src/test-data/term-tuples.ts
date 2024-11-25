@@ -1,3 +1,4 @@
+import { MongoQuiz } from "@/db/models/quiz/quiz";
 import { Quiz, TermTuple, WordType } from "@/db/types";
 import { Language } from "@/db/types";
 
@@ -12,7 +13,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Course effrénée",
         language:Language.FRENCH,
         examples: ["Dans la course effrénée du quotidien, se rapprocher de soi-même constitue un vrai défi."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -24,7 +26,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "En hausse",
         language:Language.FRENCH,
         examples: ["La consommation de musique en ligne est en hausse."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -36,7 +39,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Roi de la fête",
         language:Language.FRENCH,
         examples: ["Dès que Michael entre dans la salle, il devient instantanément le roi de la fête."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -48,7 +52,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Dans l'ignorance",
         language:Language.FRENCH,
         examples: ["Je voudrais quelques informations, parce que je crois qu'on nous laisse dans l'ignorance à ce sujet."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -60,7 +65,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Diamant brut",
         language:Language.FRENCH,
         examples: ["Jake est un vrai diamant brut qui mérite qu'on lui donne une chance."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -72,7 +78,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Dire la vérité",
         language:Language.FRENCH,
         examples: ["Il est temps de dire la vérité sur cette réunion."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -84,7 +91,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Sac de noeuds",
         language:Language.FRENCH,
         examples: ["Je préférerais ne pas avoir à démêler ce sac de noeuds si possible."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -96,7 +104,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Se libérer",
         language:Language.FRENCH,
         examples: ["Nous avons aidé des milliers de personnes à se libérer de leurs problèmes financiers."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -108,7 +117,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Pain quotidien",
         language:Language.FRENCH,
         examples: ["La gestion des risques est notre pain quotidien."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -120,7 +130,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Au-delà de",
         language:Language.FRENCH,
         examples: ["Le service que nous avons reçu de leur équipe a toujours été au-delà de nos attentes."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -132,7 +143,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Bouche-à-oreille",
         language:Language.FRENCH,
         examples: ["Les évaluations des clients correspondent à l'équivalent moderne du bon vieux bouche-à-oreille."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -144,7 +156,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Patraque",
         language:Language.FRENCH,
         examples: ["Je suis un peu fatigué, je me sens patraque."]
-      }
+      },
+      source: "Unknown"
     },
     {
       firstTerm: {
@@ -156,7 +169,8 @@ export const idiomTermTuples: TermTuple[] = [
         word: "Sous pression",
         language:Language.FRENCH,
         examples: ["Les équipes de création sont constamment sous pression pour livrer des campagnes attractives et innovantes."]
-      }
+      },
+      source: "Unknown"
     }
   ];
 
@@ -173,7 +187,8 @@ export const advancedTermTuples: TermTuple[] = [
             language: Language.ENGLISH,
             type: WordType.VERB,
             examples: ["We need to increase our efforts to succeed.", "This medication can increase the chances of recovery."]
-        }
+        },
+        source: "Unknown"
     },
     {
         firstTerm: {
@@ -185,7 +200,8 @@ export const advancedTermTuples: TermTuple[] = [
             word: "Eloquent",
             language: Language.ENGLISH,
             examples: ["His speech was extremely eloquent.", "She is known for being an eloquent speaker."]
-        }
+        },
+        source: "Unknown"
     },
     {
         firstTerm: {
@@ -197,7 +213,8 @@ export const advancedTermTuples: TermTuple[] = [
             word: "Considerable",
             language: Language.ENGLISH,
             examples: ["They invested a considerable amount in this project.", "The response time is considerably improved."]
-        }
+        },
+        source: "Unknown"
     },
     {
         firstTerm: {
@@ -209,7 +226,9 @@ export const advancedTermTuples: TermTuple[] = [
             word: "Neglect",
             language: Language.ENGLISH,
             examples: ["One must not neglect the details.", "She neglected her important responsibilities."]
-        }
+        },
+        source: "Unknown"
+
     },
     {
         firstTerm: {
@@ -221,7 +240,8 @@ export const advancedTermTuples: TermTuple[] = [
             word: "Bold",
             language: Language.ENGLISH,
             examples: ["He made a bold choice by quitting his job.", "This color is a bold choice for the decor."]
-        }
+        },
+        source: "Unknown"
     },
     {
         firstTerm: {
@@ -233,7 +253,8 @@ export const advancedTermTuples: TermTuple[] = [
             word: "Confuse",
             language: Language.ENGLISH,
             examples: ["The instructions were so complicated that they confused him.", "The maze was designed to confuse visitors."]
-        }
+        },
+        source: "Unknown"
     },
     {
         firstTerm: {
@@ -245,7 +266,8 @@ export const advancedTermTuples: TermTuple[] = [
             word: "Prosperity",
             language: Language.ENGLISH,
             examples: ["Economic prosperity has benefited everyone.", "They wish to achieve prosperity in their careers."]
-        }
+        },
+        source: "Unknown"
     },
     {
         firstTerm: {
@@ -257,7 +279,8 @@ export const advancedTermTuples: TermTuple[] = [
             word: "Optimize",
             language: Language.ENGLISH,
             examples: ["We need to optimize our strategy for better results.", "It is important to optimize the use of resources."]
-        }
+        },
+        source: "Unknown"
     },
     {
         firstTerm: {
@@ -269,7 +292,8 @@ export const advancedTermTuples: TermTuple[] = [
             word: "Meticulous",
             language: Language.ENGLISH,
             examples: ["She has a meticulous approach to her work.", "Meticulous work ensures better quality."]
-        }
+        },
+        source: "Unknown"
     },
     {
         firstTerm: {
@@ -281,7 +305,8 @@ export const advancedTermTuples: TermTuple[] = [
             word: "Fulfillment",
             language: Language.ENGLISH,
             examples: ["Personal fulfillment is essential for a balanced life.", "They support the fulfillment of their employees."]
-        }
+        },
+        source: "Unknown"
     }
 ];
 
@@ -414,9 +439,9 @@ export const foodTermTuples = [
         }
     }
 ];
-export const defaultQuizzes: Quiz[] = [
-    { title: "Quiz 1", items: advancedTermTuples, state: "COMPLETED" },
-    { title: "Food 1", items: foodTermTuples, state: "FAILED" },
-    { title: "Idioms - Reverso Context", items: idiomTermTuples, state: "NEW" }
-];
+// export const defaultQuizzes: MongoQuiz[] = [
+//     { title: "Quiz 1", items: advancedTermTuples, state: "COMPLETED" },
+//     { title: "Food 1", items: foodTermTuples, state: "FAILED" },
+//     { title: "Idioms - Reverso Context", items: idiomTermTuples, state: "NEW" }
+// ];
   

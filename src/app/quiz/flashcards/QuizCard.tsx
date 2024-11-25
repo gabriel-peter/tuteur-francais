@@ -18,7 +18,7 @@ const QuizStatusToBadge: Record<Quiz["state"], React.ReactNode> = {
     "FAILED": <Badge color="red">Redo</Badge>
 };
 
-export const QuizCard = ({ quiz, setQuiz }: { quiz: MongoQuiz; setQuiz: (q: Quiz) => void; }) => {
+export const QuizCard = ({ quiz, setQuiz }: { quiz: MongoQuiz; setQuiz: (q: MongoQuiz) => void; }) => {
     useEffect(() => {
         getQuizAttemptAction(quiz._id).then(JSON.parse).then(console.log)
     }, [])

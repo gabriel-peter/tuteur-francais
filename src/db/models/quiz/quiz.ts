@@ -2,7 +2,9 @@ import mongoose from "mongoose";
 import { Quiz } from "../../types";
 import { TermTupleSchema } from "../TermTupleSchema";
 
-export interface MongoQuiz extends Quiz, mongoose.Document { }
+export interface MongoQuiz extends Quiz, mongoose.Document {
+    _id: string
+ }
 export const QuizSchema = new mongoose.Schema<MongoQuiz>({
     title: { type: String, required: true },
     items: { type: [TermTupleSchema], required: true },

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ExternalSourceSelector } from "./ExternalSourceSelector.1";
 import { AnnotatedExcerpt } from "@/db/models/reading/excerpt";
+import { QuizPartial } from "./TermTuplePreview";
 
 // Copy of VideoSourceDialogBody TODO abstract
 export function ReadingSourceDialogBody() {
@@ -14,7 +15,7 @@ export function ReadingSourceDialogBody() {
         getAllAnnotatedExcerptAction().then(JSON.parse).then(recentExcerpts => setRecentExcerpts(recentExcerpts)); // TODO LIMIT
     }, []);
 
-    function createQuiz(excerpt: AnnotatedExcerpt) {
+    function createQuiz(excerpt: QuizPartial) {
         const newQuiz: Quiz = {
             title: excerpt.title,
             items: excerpt.terms,

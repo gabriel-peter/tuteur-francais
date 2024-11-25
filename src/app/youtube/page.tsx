@@ -9,7 +9,7 @@ import { handleKeyDown } from "../utils";
 import { extractYoutubeId, getVideoMetadata as getVideoMetadata, YoutubeVideoMetadata } from "@/clients/youtube";
 import Image from 'next/image';
 import { upsertAnnotatedVideoAction as createOrFindAnnotatedVideoAction, deleteAnnotatedVideoAction, getAllAnnotatedVideoAction } from "@/db/actions";
-import { AnnotatedVideo } from "@/db/models/annotated-video";
+import { AnnotatedVideo, MongoAnnotatedVideo } from "@/db/models/annotated-video";
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
 import { DeleteDialog } from "../../components/DeleteDialog";
 import { useRouter } from "next/navigation";
@@ -19,40 +19,40 @@ import { VideoRecents } from "./VideoRecents";
 
 export default function YoutubeToolHome() {
     const [url, setUrl] = useState<string>();
-    const [videoRecents, setVideoRecents] = useState<AnnotatedVideo[]>([])
+    const [videoRecents, setVideoRecents] = useState<MongoAnnotatedVideo[]>([])
     const router = useRouter()
 
     function search(url?: string) {
-        if (url === undefined) return new Promise(() => {});
+        if (url === undefined) return new Promise(() => { });
         return getVideoMetadata(url).then(res => {
             console.log(res);
             return res
         }).then(metadata => createOrFindAnnotatedVideoAction(metadata))
             .then(JSON.parse)
-            .then((newVideo: AnnotatedVideo) => {console.log("Success new video save: " + newVideo.videoId); return newVideo.videoId})
+            .then((newVideo: MongoAnnotatedVideo) => { console.log("Success new video save: " + newVideo.videoId); return newVideo.videoId })
             .then(videoId => router.push(`/youtube/${videoId}`))
             .catch(console.error)
     }
 
     useEffect(() => {
         getAllAnnotatedVideoAction().then(res => JSON.parse(res))
-            .then((recents: AnnotatedVideo[]) => setVideoRecents(prev => [...prev, ...recents]))
+            .then((recents: MongoAnnotatedVideo[]) => setVideoRecents(recents))
             .catch(e => console.error(e))
     }, [])
     return (
         <>
             <SearchBar
-            description="Enter a video URL that you wish to take notes on."
-            textValue={url}
-            setTextValue={setUrl}
-            searchAction={()=> search(url)}/>
+                description="Enter a video URL that you wish to take notes on."
+                textValue={url}
+                setTextValue={setUrl}
+                searchAction={() => search(url)} />
             <br />
             <VideoRecents videoRecents={videoRecents} />
         </>
     )
 }
 
-export function VideoRecentRow({ video }: { video: AnnotatedVideo }) {
+export function VideoRecentRow({ video }: { video: MongoAnnotatedVideo }) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const router = useRouter();
     return (

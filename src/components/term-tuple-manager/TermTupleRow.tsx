@@ -6,6 +6,7 @@ import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "../catalys
 import { TableRow, TableCell } from "../catalyst-ui/table";
 import { Field } from "../catalyst-ui/fieldset";
 import { TermTupleDialog } from "./TermTupleDialog";
+import { MongoTermTuple } from "@/db/models/TermTupleSchema";
 
 const TermReselectListbox = ({ term, editTermAction }: { term: Term, editTermAction: (x: Term) => void }) => {
     const [translationValue, setTranslationValue] = useState(term.word)
@@ -28,7 +29,7 @@ const TermReselectListbox = ({ term, editTermAction }: { term: Term, editTermAct
             {/* Sadly complicated, other possibilities include the main 
             translation so you need to append them and get the unique Set */}
             {[...new Set([term.word, ...term.otherPossibilies])].map((possibility, index) => (
-                <ListboxOption value={possibility} key={index}>
+                <ListboxOption value={possibility} key={possibility}>
                     <ListboxLabel>{possibility}</ListboxLabel>
                 </ListboxOption>
             ))}
@@ -41,7 +42,7 @@ export function TermTupleRows({
     removeAction,
     editAction
 }: {
-    terms: TermTuple[],
+    terms: MongoTermTuple[],
     removeAction: (x: TermTuple) => void,
     editAction: (newTermTuple: TermTuple, oldTermTuple: TermTuple) => void
 }) {

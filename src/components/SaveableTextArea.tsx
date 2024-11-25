@@ -6,7 +6,7 @@ import { RequestState } from "@/components/LoadingButton";
 import { Text } from "@/components/catalyst-ui/text";
 import React, { useState, useEffect } from "react";
 
-export function SaveableTextArea({ text: textProp, saveText }: { text: string; saveText: (x: string) => Promise<string>; }) {
+export function SaveableTextArea({ text: textProp, saveText }: { text: string; saveText: (x: string) => Promise<void>; }) {
     const [text, setText] = useState<string>(textProp);
     const [isEditing, setIsEditing] = useState<boolean>(text === "");
     const [loadState, setLoadState] = useState<RequestState>("IDLE");

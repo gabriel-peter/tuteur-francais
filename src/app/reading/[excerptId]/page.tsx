@@ -28,6 +28,7 @@ import { TermTupleRows } from "@/components/term-tuple-manager/TermTupleRow";
 export default function ReadingTool({ params }: { params: Promise<{ excerptId: string }> }) {
     const [excerpt, setExcerpt] = useState<MongoAnnotatedExcerpt>();
     const [excerptId, setExcerptId] = useState<string>();
+   
     useEffect(() => { // Load Excerpt by Id
         params.then(params => {
             console.log("Loading Excerpt: ", params.excerptId)
@@ -47,26 +48,28 @@ export default function ReadingTool({ params }: { params: Promise<{ excerptId: s
             .catch(error => console.error(error))
     };
 
-    function updateContent(newContent: string): Promise<void> {
-        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerpt?._id, { ...excerpt, content: newContent })
+    function updateContent(newContent: string, excerptId: string): Promise<void> {
+        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerptId, { ...excerpt, content: newContent })
             .then(JSON.parse)
             .then(setExcerpt)
     }
 
-    function updateTitle(newTitle: string): Promise<void> {
-        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerpt?._id, { ...excerpt, title: newTitle })
+    function updateTitle(newTitle: string, excerptId: string): Promise<void> {
+        return updateDocumentById<MongoAnnotatedExcerpt>("AnnotatedExcerpt", excerptId, { ...excerpt, title: newTitle })
             .then(JSON.parse)
             .then(setExcerpt)
     }
 
     // Example placeholder function for translation
     const translateText = (selectedText: string) => {
-        alert(`Translate: ${selectedText}`);
-        return new Promise(() => { });
+        return reverso(selectedText, "fr", "en").then((res: TranslationResponse) => alert(`${selectedText} -> ${res.translation[0]}`))
     };
-    return excerpt ? (
+    if (!excerpt) {
+        return <div>Loading ...</div>
+    }
+    return (
         <>
-            <EditablePageHeader title={excerpt.title} saveTitle={updateTitle}>
+            <EditablePageHeader title={excerpt.title} saveTitle={(newTitle: string) => updateTitle(newTitle, excerpt._id)}>
                 <>
                     <TextWithActions
                         highlightActions={
@@ -76,11 +79,11 @@ export default function ReadingTool({ params }: { params: Promise<{ excerptId: s
                                         <DropdownShortcut keys="⌘S" />
                                         <DropdownLabel>Save</DropdownLabel>
                                     </DropdownItem>
-                                    <DropdownItem onClick={() => translateText(selectedText, excerpt._id).then(closeMenu)}>
+                                    <DropdownItem onClick={() => translateText(selectedText).then(closeMenu)}>
                                         <DropdownLabel>Quick Translate</DropdownLabel>
                                         <DropdownShortcut keys="⌘T" />
                                     </DropdownItem>
-                                    <DropdownItem onClick={() => translateText(selectedText, excerpt._id).then(closeMenu)}>
+                                    <DropdownItem onClick={() => translateText(selectedText).then(closeMenu)}>
                                         <DropdownLabel>Speak</DropdownLabel>
                                         {/* <DropdownShortcut keys="⌘T" /> */}
                                     </DropdownItem>
@@ -89,7 +92,7 @@ export default function ReadingTool({ params }: { params: Promise<{ excerptId: s
                         body={
                             <SaveableTextArea
                                 text={excerpt.content}
-                                saveText={updateContent}
+                                saveText={(newContent: string) => updateContent(newContent, excerpt._id)}
                             />
                         }
                     />
@@ -99,8 +102,8 @@ export default function ReadingTool({ params }: { params: Promise<{ excerptId: s
             <SavedTerms excerpt={excerpt} setExcerpt={setExcerpt} />
             {/* </div> */}
         </>
-    ) :
-        <div>Loading ...</div>
+    )
+        
 }
 
 function SavedTerms({ excerpt, setExcerpt }: { excerpt: MongoAnnotatedExcerpt, setExcerpt: (x: MongoAnnotatedExcerpt) => void }) {

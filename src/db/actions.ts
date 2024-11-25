@@ -168,7 +168,7 @@ export async function updateTermFromAnnotatedExcerptAction(newTermTuple: TermTup
     const excerpt: MongoAnnotatedExcerpt | null = await AnnotatedExcerptModel.findById(excerptId);
     if (!excerpt) {
         console.warn("No excerpt found during update: ", excerptId)
-        return null;
+        throw new Error("No excerpt found during update");
     }
     // Find the index of the term to update based on full match
     const termIndex = excerpt.terms.findIndex(term =>
@@ -189,7 +189,7 @@ export async function updateTermFromAnnotatedExcerptAction(newTermTuple: TermTup
         return JSON.stringify(updatedExcerpt);
     } else {
         console.error("No term match to update: ", newTermTuple, oldTermTuple)
-        return null; // No matching term found
+        throw new Error("No term match to update");
     }
 }
 

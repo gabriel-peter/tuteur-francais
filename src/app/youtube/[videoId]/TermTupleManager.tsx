@@ -15,8 +15,8 @@ import { Text } from "@/components/catalyst-ui/text";
 import { Language, TermTuple } from "@/db/types";
 import { TermTupleRows } from "@/components/term-tuple-manager/TermTupleRow";
 
-export function TermTupleManager({ video: videoProp, setVideo: updateVideo }: { video: AnnotatedVideo, setVideo: (x: MongoAnnotatedVideo) => void }) {
-    const [video, setVideo] = useState<AnnotatedVideo>(videoProp);
+export function TermTupleManager({ video: videoProp, setVideo: updateVideo }: { video: MongoAnnotatedVideo, setVideo: (x: MongoAnnotatedVideo) => void }) {
+    const [video, setVideo] = useState<MongoAnnotatedVideo>(videoProp);
     function editAction(newTermTuple: TermTuple, oldTermTuple: TermTuple) {
         updateTermFromAnnotatedVideoAction(newTermTuple, oldTermTuple, video.videoId).then(JSON.parse).then(updateVideo)
     }
@@ -60,7 +60,7 @@ export function TermTupleManager({ video: videoProp, setVideo: updateVideo }: { 
     function removeItem(term: TermTuple, videoId: string) {
         removeTermFromAnnotatedVideo(term, videoId)
             .then(r => JSON.parse(r))
-            .then((video: AnnotatedVideo) => setVideo(video))
+            .then((video: MongoAnnotatedVideo) => setVideo(video))
     }
 
     return (
@@ -77,7 +77,7 @@ export function TermTupleManager({ video: videoProp, setVideo: updateVideo }: { 
                 <TableRow>
                     {vocabTermFields.map((termKey, index) => {
                         return (
-                            <TableCell key={index}>
+                            <TableCell key={termKey}>
                                 <Input
                                     aria-label={`"${termKey} Term"`}
                                     value={newTerm[termKey]}
