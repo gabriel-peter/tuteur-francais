@@ -50,7 +50,8 @@ export function toTermTuple(searchText: string, res: TranslationResponse): TermT
             otherPossibilies: res.contextResults.results.map(r => r.translation).filter(r => r !== ''),
             examples: res.contextResults.results.flatMap(r => r.targetExamples).filter(r => r !== ''),
             language: Language.ENGLISH
-        }
+        },
+        source: "Reverso",
     }
 }
 

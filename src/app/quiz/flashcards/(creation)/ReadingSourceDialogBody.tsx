@@ -1,10 +1,10 @@
 "use client";
 import { getAllAnnotatedExcerptAction, createQuizAction } from "@/db/actions";
-import { AnnotatedExcerpt } from "@/db/models/excerpt";
 import { Quiz } from "@/db/types";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ExternalSourceSelector } from "./ExternalSourceSelector.1";
+import { AnnotatedExcerpt } from "@/db/models/reading/excerpt";
 
 // Copy of VideoSourceDialogBody TODO abstract
 export function ReadingSourceDialogBody() {

@@ -9,7 +9,7 @@ import { Menu, MenuButton } from "@headlessui/react";
 import { SimpleVocabTerm } from "@/db/models/vocab-term";
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/catalyst-ui/table";
 import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
-import AnnotatedExcerptModel, { AnnotatedExcerpt, MongoAnnotatedExcerpt } from "@/db/models/excerpt";
+import AnnotatedExcerptModel, { AnnotatedExcerpt, MongoAnnotatedExcerpt } from "@/db/models/reading/excerpt";
 import { TextWithActions } from "@/components/TextWithActions";
 import { getExerptAction, removeTermFromAnnotatedExcerpt, updateDocumentById, updateTermFromAnnotatedExcerptAction, updateTermToAnnotatedExcertAction } from "@/db/actions";
 import { reverso, toTermTuple, TranslationResponse } from "@/clients/reverso";
@@ -23,6 +23,7 @@ import { Button } from "@/components/catalyst-ui/button";
 import { handleKeyDown } from "@/app/utils";
 import { SaveableTextArea } from "../../../components/SaveableTextArea";
 import { EditablePageHeader } from "../../../components/EditablePageHeader";
+import { TermTupleRows } from "@/components/term-tuple-manager/TermTupleRow";
 
 export default function ReadingTool({ params }: { params: Promise<{ excerptId: string }> }) {
     const [excerpt, setExcerpt] = useState<MongoAnnotatedExcerpt>();
@@ -95,7 +96,7 @@ export default function ReadingTool({ params }: { params: Promise<{ excerptId: s
                 </>
             </EditablePageHeader>
             {/* <div className="fixed rounded bottom-0 w-auto h-1/3 p-4 overflow-x-hidden overflow-y-scroll bg-gray-800 shadow-lg z-100"> */}
-                <SavedTerms excerpt={excerpt} setExcerpt={setExcerpt} />
+            <SavedTerms excerpt={excerpt} setExcerpt={setExcerpt} />
             {/* </div> */}
         </>
     ) :
@@ -130,129 +131,9 @@ function SavedTerms({ excerpt, setExcerpt }: { excerpt: MongoAnnotatedExcerpt, s
     </Table>
 }
 
-// ChatGPT function 
-function flattenObject(obj: Record<string, any>, parentKey = "", result: Record<string, any> = {}): Record<string, any> {
-    for (let key in obj) {
-        const newKey = parentKey ? `${parentKey}.${key}` : key;
-        if (typeof obj[key] === "object" && obj[key] !== null) {
-            flattenObject(obj[key], newKey, result);
-        } else {
-            result[newKey] = obj[key];
-        }
-    }
-    return result;
-}
 
-const TermTupleDialog = ({
-    termTuple,
-    children
-}: {
-    termTuple: TermTuple,
-    // I apologize in advance for this signature.
-    children: ({ setIsOpen }: { setIsOpen: (x: boolean) => void }) => React.ReactNode
-}) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-        <>
-            {children({ setIsOpen })}
-            <Dialog open={isOpen} onClose={setIsOpen}>
-                <DialogTitle>Term</DialogTitle>
-                {/* <DialogDescription>
-          The refund will be reflected in the customer’s bank account 2 to 3 business days after processing.
-        </DialogDescription> */}
-                <DialogBody>
-                    <DescriptionList>
-                        {Object.entries(flattenObject(termTuple)).map(([key, value]) =>
-                        (<><DescriptionTerm>{key}</DescriptionTerm>
-                            <DescriptionDetails>{value}</DescriptionDetails></>))}
-                    </DescriptionList>
-                </DialogBody>
-                <DialogActions>
-                    <Button plain onClick={() => setIsOpen(false)}>
-                        Cancel
-                    </Button>
-                    <Button onClick={() => setIsOpen(false)}>Refund</Button>
-                </DialogActions>
-            </Dialog>
-        </>
-    )
-}
 
-const TermReselectListbox = ({ term, editTermAction }: { term: Term, editTermAction: (x: Term) => void }) => {
-    const [translationValue, setTranslationValue] = useState(term.word)
 
-    // Detects change in state made by Listbox and causes full object change in parent.
-    useEffect(() => {
-        if (term.word === translationValue) return
-        editTermAction({ ...term, word: translationValue })
-    }, [translationValue])
-    if (!term.otherPossibilies || term.otherPossibilies.length === 0) {
-        return term.word
-    }
-    return (<Field>
-        <Listbox value={translationValue} onChange={value =>
-            setTranslationValue(value)
-            // editTermAction({ ...term, word: value })
-        }>
-            {/* Sadly complicated, other possibilities include the main 
-            translation so you need to append them and get the unique Set */}
-            {[...new Set([term.word, ...term.otherPossibilies || []])].map((possibility, index) => (
-                <ListboxOption value={possibility} key={index}>
-                    <ListboxLabel>{possibility}</ListboxLabel>
-                </ListboxOption>
-            ))}
-        </Listbox>
-    </Field>);
-};
 
-export function TermTupleRows({
-    terms,
-    removeAction,
-    editAction
-}: {
-    terms: TermTuple[],
-    removeAction: (x: TermTuple) => void,
-    editAction: (newTermTuple: TermTuple, oldTermTuple: TermTuple) => void
-}) {
-    return (
-        <>
-            {terms.map((term, index) => (
-                <>
-                    <TermTupleDialog termTuple={term}>
-                        {({ setIsOpen }) =>
-                            <TableRow key={index}>
-                                <TableCell className="font-medium">{term.firstTerm.word}</TableCell>
-                                <TableCell>
-                                    <TermReselectListbox term={term.secondTerm} editTermAction={
-                                        (newSecondTerm: Term) => {
-                                            const newTermTuple: TermTuple = { ...term, ...{ secondTerm: newSecondTerm } }
-                                            editAction(newTermTuple, term)
-                                            console.log("New Main Translation Selected", newSecondTerm)
-                                        }
-                                    } />
-                                </TableCell>
-                                {/* <TableCell>{term.firstTerm.type}</TableCell> */}
-                                <TableCell className="text-zinc-500">
-                                    <div className="-mx-3 -my-1.5 sm:-mx-2.5">
-                                        <Dropdown>
-                                            <DropdownButton plain aria-label="More options">
-                                                <EllipsisHorizontalIcon />
-                                            </DropdownButton>
-                                            <DropdownMenu anchor="bottom end">
-                                                {/* Shows more of TermTuple like examples */}
-                                                <DropdownItem onClick={() => setIsOpen(true)}>View</DropdownItem>
-                                                <DropdownItem onClick={() => removeAction(term)}>Remove</DropdownItem>
-                                            </DropdownMenu>
-                                        </Dropdown>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        }
-                    </TermTupleDialog>
-                </>
-            ))}
-        </>
-    )
-}
 
 

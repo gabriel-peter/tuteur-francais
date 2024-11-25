@@ -11,7 +11,9 @@ export interface AnnotatedVideo {
     terms: TermTuple[]
 }
 
-export interface MongoAnnotatedVideo extends AnnotatedVideo, mongoose.Document {};
+export interface MongoAnnotatedVideo extends AnnotatedVideo, mongoose.Document {
+    _id: string
+};
 const AnnotatedVideoSchema = new mongoose.Schema<MongoAnnotatedVideo>({
     title: {type: String, required: true},
     videoId: {type: String, required: true, unique: true}, // TODO this needs to be unique PER user.

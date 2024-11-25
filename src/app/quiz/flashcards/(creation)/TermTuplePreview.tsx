@@ -32,7 +32,7 @@ export function TermTuplePreview(
             </TableBody>
         </Table>
         <LoadingButton
-            action={() => createQuiz(item).then(() => router.refresh())}
+            action={() => createQuiz(item).then(() => location.reload())}
             requestStateMap={{
                 "SUCCESS": "Create Quiz",
                 "LOADING": "Loading ...",

@@ -23,7 +23,7 @@ import { Navbar, NavbarSection, NavbarItem } from "@/components/catalyst-ui/navb
 import { ReadingSourceDialogBody } from "./(creation)/ReadingSourceDialogBody";
 import { createQuizAttemptAction } from "@/db/models/quiz-attempts/actions";
 import { QuizCard } from "./QuizCard";
-import { QuizPanel } from "./QuizGame";
+import { QuizPanel } from "./(game)/QuizGame";
 import { VideoSourceDialogBody } from "./(creation)/VideoSourceDialogBody";
 import { ManualDialogBody } from "./(creation)/ManualDialogBody";
 

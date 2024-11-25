@@ -4,7 +4,7 @@ import { Input } from "@/components/catalyst-ui/input";
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/catalyst-ui/table";
 import { SimpleVocabTerm } from "@/db/models/vocab-term";
 import { useState } from "react";
-import { handleKeyDown } from "../utils";
+import { handleKeyDown } from "../../utils";
 import AnnotatedVideoModel, { AnnotatedVideo, MongoAnnotatedVideo } from "@/db/models/annotated-video";
 import { removeTermFromAnnotatedVideo, updateTermFromAnnotatedVideoAction, updateTermToAnnotatedVideo } from "@/db/actions";
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from "@/components/catalyst-ui/dropdown";
@@ -12,14 +12,14 @@ import { EllipsisHorizontalIcon } from "@heroicons/react/16/solid";
 import { PencilIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { Button } from "@/components/catalyst-ui/button";
 import { Text } from "@/components/catalyst-ui/text";
-import { TermTuple } from "@/db/types";
-import { TermTupleRows } from "../reading/[excerptId]/page";
+import { Language, TermTuple } from "@/db/types";
+import { TermTupleRows } from "@/components/term-tuple-manager/TermTupleRow";
 
-export function HistoryTable({ video: videoProp, setVideo: updateVideo }: { video: AnnotatedVideo, setVideo: (x: MongoAnnotatedVideo) => void }) {
+export function TermTupleManager({ video: videoProp, setVideo: updateVideo }: { video: AnnotatedVideo, setVideo: (x: MongoAnnotatedVideo) => void }) {
     const [video, setVideo] = useState<AnnotatedVideo>(videoProp);
     function editAction(newTermTuple: TermTuple, oldTermTuple: TermTuple) {
         updateTermFromAnnotatedVideoAction(newTermTuple, oldTermTuple, video.videoId).then(JSON.parse).then(updateVideo)
-    } 
+    }
     const emptyTerm = { french: '', english: '', misc: '' };
     type VocabTermFields = keyof SimpleVocabTerm;
     const vocabTermFields: VocabTermFields[] = ["french", "english", "misc"];
@@ -33,7 +33,19 @@ export function HistoryTable({ video: videoProp, setVideo: updateVideo }: { vide
             } else if (newTerm.french === '') {
                 updatePromise = reverso(newTerm.english, "en", "fr").then(res => toTermTuple(newTerm.english, res))
             } else {
-                updatePromise = new Promise(() => newTerm); // Self-translated
+                // Self-translated
+                updatePromise = Promise.resolve({
+                    firstTerm: {
+                        word: newTerm.french,
+                        language: Language.FRENCH
+                    },
+                    secondTerm: {
+                        word: newTerm.english,
+                        language: Language.ENGLISH
+                    },
+                    notes: newTerm.misc,
+                    source: "User"
+                });
             }
             updatePromise
                 .then(translatedTerm => updateTermToAnnotatedVideo(translatedTerm, video.videoId))
@@ -57,6 +69,7 @@ export function HistoryTable({ video: videoProp, setVideo: updateVideo }: { vide
                 <TableRow>
                     <TableHeader>French</TableHeader>
                     <TableHeader>English</TableHeader>
+                    <TableHeader>Notes</TableHeader>
                     <TableHeader></TableHeader>
                 </TableRow>
             </TableHead>

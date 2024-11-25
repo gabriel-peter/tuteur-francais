@@ -6,7 +6,9 @@ export interface SimpleVocabTerm {
     misc: string;
 };
 
-export interface MongoSimpleVocabTerm extends SimpleVocabTerm, mongoose.Document { };
+export interface MongoSimpleVocabTerm extends SimpleVocabTerm, mongoose.Document { 
+    _id: string
+};
 export const SimpleVocabTermSchema = new mongoose.Schema<MongoSimpleVocabTerm>({
     french: { type: String, required: true },
     english: { type: String, required: true },

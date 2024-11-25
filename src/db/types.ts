@@ -19,6 +19,8 @@ export interface TermTuple {
     assets?: {
         imgUrl: string;
     };
+    source: "Reverso" | "Unknown" | "User",
+    notes?: string
 }
 ;
 

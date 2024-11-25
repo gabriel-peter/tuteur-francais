@@ -3,7 +3,7 @@
 import { getAnnotatedVideoAction } from "@/db/actions"
 import { MongoAnnotatedVideo } from "@/db/models/annotated-video"
 import { useEffect, useState } from "react"
-import { VideoNoteTool } from "../page";
+import { VideoNoteTool } from "./VideoNoteTool";
 
 export default function YoutubeNoteTaker({ params }: { params: Promise<{ videoId: string }> }) {
     const [video, setVideo] = useState<MongoAnnotatedVideo>();

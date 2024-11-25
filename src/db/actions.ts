@@ -3,10 +3,10 @@ import { Quiz, TermTuple } from "./types";
 import dbConnect from "./mongoose";
 import SimpleVocabTermModel, { SimpleVocabTerm } from "@/db/models/vocab-term"
 import AnnotatedVideoModel, { AnnotatedVideo, MongoAnnotatedVideo } from "@/db/models/annotated-video"
-import QuizModel from "@/db/models/quiz"
+import QuizModel from "@/db/models/quiz/quiz"
 import { MongoTermTuple } from "./models/TermTupleSchema";
 import { YoutubeVideoMetadata } from "@/clients/youtube";
-import AnnotatedExcerptModel, { AnnotatedExcerpt, MongoAnnotatedExcerpt } from "./models/excerpt";
+import AnnotatedExcerptModel, { AnnotatedExcerpt, MongoAnnotatedExcerpt } from "@/db/models/reading/excerpt";
 import mongoose, { Model } from "mongoose";
 
 export async function createFlashCardAction(term: SimpleVocabTerm) {
@@ -114,11 +114,11 @@ export async function deleteAnnotatedVideoAction(videoId: string) {
     return JSON.stringify(deletedVideo);
 }
 
-export async function createAnnotatedExcerptAction(newAnnotatedExcerpt: AnnotatedExcerpt): Promise<string> {
+export async function createAnnotatedExcerptAction(newAnnotatedExcerpt: Partial<AnnotatedExcerpt>): Promise<string> {
     await dbConnect();
-    const newExcerpt = await AnnotatedExcerptModel.create(newAnnotatedExcerpt)
+    const newExcerpt = await AnnotatedExcerptModel.create({...newAnnotatedExcerpt, createdAt: new Date()})
     console.log(newExcerpt)
-    return newExcerpt._id;
+    return JSON.stringify(newExcerpt._id);
 }
 
 export async function getExerptAction(excerptId: string): Promise<any> {
@@ -230,7 +230,7 @@ export async function updateTermFromAnnotatedVideoAction(newTermTuple: TermTuple
     const excerpt: MongoAnnotatedVideo | null = await AnnotatedVideoModel.findOne({videoId});
     if (!excerpt) {
         console.warn("No excerpt found during update: ", videoId)
-        return null;
+        throw new Error("No excerpt found during update");
     }
     // Find the index of the term to update based on full match
     const termIndex = excerpt.terms.findIndex(term =>
@@ -251,6 +251,6 @@ export async function updateTermFromAnnotatedVideoAction(newTermTuple: TermTuple
         return JSON.stringify(updatedExcerpt);
     } else {
         console.error("No term match to update: ", newTermTuple, oldTermTuple)
-        return null; // No matching term found
+        throw new Error("No term match to update")
     }
 }

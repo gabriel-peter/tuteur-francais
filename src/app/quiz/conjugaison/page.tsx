@@ -9,18 +9,32 @@ import { Navbar, NavbarSection, NavbarItem } from "@/components/catalyst-ui/navb
 import PageHeader from "@/components/PageHeader";
 import { useEffect, useState } from "react";
 import { SearchBar } from "../../../components/SearchBar";
-import { reverso, TranslationResponse } from "@/clients/reverso";
 import { StarIcon } from "@heroicons/react/24/outline";
+import { SimpleTranslation } from "./SimpleTranslation";
+import { createConjugaisonTerm, findConjugaisonTerm } from "@/db/models/conjugaison/actions";
 
 export default function Conjugaison() {
-    const [verb, setVerb] = useState<string>()
+    const [verb, setVerb] = useState<string>("")
     const [conjugaisons, setConjugaisons] = useState<VerbMode>()
+    useEffect(() => {
+        console.log("NEW SEARCH")
+        findConjugaisonTerm(verb).then(console.log).then(searchResult => {
+            // if(searchResult) {
+
+            // } else {
+            //     createConjugaisonTerm({
+            //         term: Ter
+            //     })
+            // }
+            
+        })
+    }, [verb])
     console.log(conjugaisons)
     return (<div>
-        <br/>
+        <br />
         <SearchBar setTextValue={setVerb} textValue={verb} searchAction={() => getConjugaison("french", verb).then(setConjugaisons)} />
-        {conjugaisons && verb && 
-        <div className="grid grid-cols-2"><SimpleTranslation word={verb} /> <ActionBar verb={verb}/></div>}
+        {conjugaisons && verb &&
+            <div className="grid grid-cols-2"><SimpleTranslation word={verb} /> <ActionBar verb={verb} /></div>}
         {conjugaisons && Object.keys(conjugaisons).map((modeKey: string) => {
             return (<>
                 <Heading>{modeKey}</Heading>
@@ -28,7 +42,6 @@ export default function Conjugaison() {
                 <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {
                         Object.keys(conjugaisons[modeKey]).map(tenseKey =>
-
                             <li className="col-span-1 divide-y divide-gray-200 rounded-lg shadow">
                                 <ConjugaisonTenseDescriptionList verbTense={{ tense: tenseKey, conjugaisons: conjugaisons[modeKey][tenseKey] }} />
                             </li>
@@ -42,35 +55,19 @@ export default function Conjugaison() {
     </div>)
 }
 
-export function ActionBar({verb}: {verb: string}) {
+export function ActionBar({ verb }: { verb: string }) {
     const [isFaved, setIsFaved] = useState<boolean>(false);
     useEffect(() => {
 
     }, [verb])
     function makeFavorite() {
-        
+
     }
     return (
         <div>
-            <Button onClick={() => {}}><StarIcon/></Button>
+            <Button onClick={() => { }}><StarIcon /></Button>
         </div>
     )
-}
-
-export function SimpleTranslation({ word }: { word?: string }) {
-    const [tranduction, setTranduction] = useState<string>();
-    useEffect(() => {
-        if (word) {
-            reverso(word, "fr", "en").then((res: TranslationResponse) => setTranduction(res.translation[0]))
-        }
-    }, [word])
-    if (word) { return (
-        <DescriptionList>
-            <DescriptionTerm>{word}</DescriptionTerm>
-            <DescriptionDetails>to {tranduction}</DescriptionDetails>
-        </DescriptionList>
-    );
-}
 }
 
 export function ConjugaisonTenseDescriptionList({ verbTense }: { verbTense: { tense: string, conjugaisons: string[] } }) {

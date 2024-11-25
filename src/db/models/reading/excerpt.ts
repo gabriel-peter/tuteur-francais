@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
-import { TermTupleSchema } from "./TermTupleSchema";
-import { TermTuple } from "../types";
+import { TermTuple } from "@/db/types";
+import mongoose, { Types } from "mongoose";
+import { TermTupleSchema } from "@/db/models/TermTupleSchema";
+
 
 export interface AnnotatedExcerpt {
     title: string
@@ -9,7 +10,9 @@ export interface AnnotatedExcerpt {
     terms: TermTuple[]
 }
 
-export interface MongoAnnotatedExcerpt extends AnnotatedExcerpt, mongoose.Document { }
+export interface MongoAnnotatedExcerpt extends AnnotatedExcerpt, mongoose.Document { 
+    _id: string
+}
 const AnnotatedExcerptSchema = new mongoose.Schema({
     title: { type: String, required: true },
     content: { type: String, required: false, default: ""},
